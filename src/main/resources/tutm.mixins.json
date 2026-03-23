@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.maxwell.tutm.mixin",
+  "refmap": "tutm.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "GameRendererTimeStopMixin",
+    "LivingEntityRendererTimeStopMixin",
+    "MinecraftServerTimeFlowMixin",
+    "ServerLevelAccessor",
+    "PostChainAccessor"
+  ],
+  "client": [
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
