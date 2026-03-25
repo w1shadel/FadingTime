@@ -17,7 +17,6 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, TUTM.MODID);
-
     public static final RegistryObject<EntityType<The_Ultimate_TimeManagerEntity>> THE_ULTIMATE_TIME_MANAGER =
             ENTITIES.register("the_ultimate_time_manager",
                     () -> EntityType.Builder.of(The_Ultimate_TimeManagerEntity::new, MobCategory.MONSTER)
@@ -32,7 +31,6 @@ public class ModEntities {
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE, 20.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR, 10.0D)
                 .add(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE, 64.0D);
-
         event.put(THE_ULTIMATE_TIME_MANAGER.get(), attributes.build());
     }
 }

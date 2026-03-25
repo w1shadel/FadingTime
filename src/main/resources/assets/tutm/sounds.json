@@ -1,0 +1,32 @@
+{
+  "time_stop": {
+    "subtitle": "subtitles.tutm.time_stop",
+    "sounds": [
+      "tutm:time_stop"
+    ]
+  },
+  "time_start": {
+    "subtitle": "subtitles.tutm.time_start",
+    "sounds": [
+      "tutm:time_start"
+    ]
+  },
+  "time_acceleration": {
+    "subtitle": "subtitles.tutm.acceleration",
+    "sounds": [
+      "tutm:acceleration"
+    ]
+  },
+  "time_end_acceleration": {
+    "subtitle": "subtitles.tutm.end_acceleration",
+    "sounds": [
+      "tutm:end_acceleration"
+    ]
+  },
+  "rewind": {
+    "subtitle": "subtitles.tutm.rewind",
+    "sounds": [
+      "tutm:rewind"
+    ]
+  }
+}

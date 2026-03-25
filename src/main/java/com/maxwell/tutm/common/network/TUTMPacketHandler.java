@@ -3,7 +3,6 @@ package com.maxwell.tutm.common.network;
 import com.maxwell.tutm.TUTM;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TUTMPacketHandler {
@@ -14,7 +13,6 @@ public class TUTMPacketHandler {
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
-
     private static int packetId = 0;
 
     public static void register() {

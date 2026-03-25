@@ -9,7 +9,10 @@
     "LivingEntityRendererTimeStopMixin",
     "MinecraftServerTimeFlowMixin",
     "ServerLevelAccessor",
-    "PostChainAccessor"
+    "PostChainAccessor",
+    "LevelTimeManagerMixin",
+    "EntityManagerAccessor",
+    "EntityTickListAccessor"
   ],
   "client": [
   ],

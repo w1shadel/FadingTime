@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererTimeStopMixin {
-
     @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private float tutm$adjustPartialTicks(float partialTicks, LivingEntity pEntity) {
         if (TimeManager.isTimeStopped()) {

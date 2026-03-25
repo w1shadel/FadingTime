@@ -22,6 +22,7 @@ public class ClientModEvents {
     public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(The_Ultimate_Time_ManagerModel.LAYER_LOCATION, The_Ultimate_Time_ManagerModel::createBodyLayer);
     }
+
     @SubscribeEvent
     public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAboveAll("time_gauge", TimeGaugeOverlay.HUD);

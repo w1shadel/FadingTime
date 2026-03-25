@@ -16,17 +16,19 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(TUTM.MODID, "textures/entity/tutm.png");
-    private static final ResourceLocation GLOW_TEXTURE = new ResourceLocation(TUTM.MODID, "textures/entity/tutm_glow.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(TUTM.MODID, "textures/entity/tutm.png");
+    private static final ResourceLocation GLOW_TEXTURE = ResourceLocation.fromNamespaceAndPath(TUTM.MODID, "textures/entity/tutm_glow.png");
 
     public The_Ultimate_Time_ManagerRenderer(EntityRendererProvider.Context context) {
         super(context, new The_Ultimate_Time_ManagerModel(context.bakeLayer(The_Ultimate_Time_ManagerModel.LAYER_LOCATION)), 0.5F);
         this.addLayer(new TimeManagerGlowLayer(this));
     }
+
     @Override
     public ResourceLocation getTextureLocation(The_Ultimate_TimeManagerEntity entity) {
         return TEXTURE;
     }
+
     @Nullable
     @Override
     protected RenderType getRenderType(The_Ultimate_TimeManagerEntity pEntity, boolean pInvisible, boolean pTranslucent, boolean pGlowing) {
@@ -37,6 +39,7 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
     public void render(The_Ultimate_TimeManagerEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
         super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, 0);
     }
+
     private static class TimeManagerGlowLayer extends RenderLayer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
         public TimeManagerGlowLayer(RenderLayerParent<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> parent) {
             super(parent);
@@ -44,14 +47,30 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
 
         @Override
         public void render(PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, The_Ultimate_TimeManagerEntity pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
-            VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entityTranslucent(GLOW_TEXTURE));
-            this.getParentModel().renderToBuffer(
-                    pPoseStack,
-                    vertexconsumer,
-                    15728880,
-                    OverlayTexture.NO_OVERLAY,
-                    1.0F, 1.0F, 1.0F, 1.0F
-            );
+            The_Ultimate_Time_ManagerModel model = this.getParentModel();
+
+            // 1. Render base model (excluding effects) using GLOW_TEXTURE
+            VertexConsumer baseConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(GLOW_TEXTURE));
+            boolean wasAVisible = model.effectA.visible;
+            boolean wasBVisible = model.effectB.visible;
+            model.effectA.visible = false;
+            model.effectB.visible = false;
+            model.renderToBuffer(pPoseStack, baseConsumer, 15728880, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+
+            // 2. Render Effects using a clean white texture to ensure code-based coloring is pure
+            VertexConsumer effectConsumer = pBuffer.getBuffer(RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/white.png")));
+
+            // Effect A (Golden)
+            model.effectA.visible = wasAVisible;
+            if (wasAVisible) {
+                model.effectA.render(pPoseStack, effectConsumer, 15728880, OverlayTexture.NO_OVERLAY, 1.0F, 0.9F, 0.1F, 0.5F);
+            }
+
+            // Effect B (Silver)
+            model.effectB.visible = wasBVisible;
+            if (wasBVisible) {
+                model.effectB.render(pPoseStack, effectConsumer, 15728880, OverlayTexture.NO_OVERLAY, 0.8F, 0.85F, 0.9F, 0.4F);
+            }
         }
     }
 }

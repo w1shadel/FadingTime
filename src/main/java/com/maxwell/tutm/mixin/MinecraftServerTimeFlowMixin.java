@@ -11,7 +11,6 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)
 public class MinecraftServerTimeFlowMixin {
-
     @Redirect(
             method = "tickChildren",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tick(Ljava/util/function/BooleanSupplier;)V")
@@ -25,9 +24,6 @@ public class MinecraftServerTimeFlowMixin {
             TimeManager.handleRewindTick(serverlevel);
             return;
         }
-        int factor = TimeManager.getAccelerationFactor(null);
-        for (int i = 0; i < factor; i++) {
-            serverlevel.tick(pHasTimeLeft);
-        }
+        serverlevel.tick(pHasTimeLeft);
     }
 }

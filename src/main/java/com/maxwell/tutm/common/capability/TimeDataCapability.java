@@ -4,20 +4,17 @@ import com.maxwell.tutm.TUTM;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Mod.EventBusSubscriber(modid = TUTM.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TimeDataCapability {
-    public static final Capability<TimeData> INSTANCE = CapabilityManager.get(new CapabilityToken<>() {});
+    public static final Capability<TimeData> INSTANCE = CapabilityManager.get(new CapabilityToken<>() {
+    });
 
     @SubscribeEvent
     public static void register(RegisterCapabilitiesEvent event) {

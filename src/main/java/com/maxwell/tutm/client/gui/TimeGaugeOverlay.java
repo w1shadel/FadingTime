@@ -2,14 +2,12 @@ package com.maxwell.tutm.client.gui;
 
 import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.common.logic.TimeManager;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 public class TimeGaugeOverlay {
     private static final ResourceLocation FRAME = new ResourceLocation(TUTM.MODID, "textures/gui/time_gauge_frame.png");
     private static final ResourceLocation FILL = new ResourceLocation(TUTM.MODID, "textures/gui/time_gauge_fill.png");
-
     public static final IGuiOverlay HUD = (gui, guiGraphics, partialTick, width, height) -> {
         if (gui.getMinecraft().options.hideGui) return;
         int x = 10;

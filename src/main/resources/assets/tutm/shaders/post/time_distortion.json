@@ -1,0 +1,19 @@
+{
+  "targets": [ "swap" ],
+  "passes": [
+    {
+      "name": "tutm:time_distortion",
+      "intarget": "minecraft:main",
+      "outtarget": "swap",
+      "auxtargets": [ ],
+      "uniforms": [
+        { "name": "Intensity", "values": [ 0.0 ] }
+      ]
+    },
+    {
+      "name": "minecraft:blit",
+      "intarget": "swap",
+      "outtarget": "minecraft:main"
+    }
+  ]
+}

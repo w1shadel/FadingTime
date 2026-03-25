@@ -2,7 +2,9 @@ package com.maxwell.tutm;
 
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
 import com.maxwell.tutm.init.ModEntities;
-import com.maxwell.tutm.init.ModItem;
+import com.maxwell.tutm.init.ModItems;
+import com.maxwell.tutm.init.ModSounds;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -12,16 +14,24 @@ import org.apache.logging.log4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(TUTM.MODID)
-public class TUTM
-{
-    private static final Logger LOGGER = LogManager.getLogger();
+public class TUTM {
     public static final String MODID = "tutm";
+    private static final Logger LOGGER = LogManager.getLogger();
+
     public TUTM() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        ModItem.ITEMS.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
         ModEntities.ENTITIES.register(modEventBus);
         TUTMPacketHandler.register();
-
+        ModSounds.SOUND_EVENTS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    public static ResourceLocation getResourceLocation(String location) {
+        return getResourceLocation(MODID, location);
+    }
+
+    public static ResourceLocation getResourceLocation(String nameSpace, String location) {
+        return new ResourceLocation(nameSpace, location);
     }
 }

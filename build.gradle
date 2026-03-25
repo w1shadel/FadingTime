@@ -90,7 +90,7 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("curse.maven:jade-324717:5672013")
-    implementation fg.deobf("curse.maven:hyperlink-1274604:7052766")
+    implementation fg.deobf("curse.maven:the-trial-monolith-1462850:7728024")
     implementation fg.deobf("curse.maven:curios-309927:6418456")
     implementation fg.deobf("curse.maven:get-it-together-drops-411045:4578649")
     implementation fg.deobf("curse.maven:cloth-config-348521:5729105")

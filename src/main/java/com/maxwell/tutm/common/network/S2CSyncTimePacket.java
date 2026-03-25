@@ -3,6 +3,7 @@ package com.maxwell.tutm.common.network;
 import com.maxwell.tutm.common.logic.TimeManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
+
 import java.util.function.Supplier;
 
 public class S2CSyncTimePacket {
