@@ -1,3 +1,7 @@
 {
-  "item.tutm.debug": "すごいデバッグの四角形の何か"
+  "item.tutm.debug": "すごいデバッグの四角形の何か",
+  "item.tutm.chrono_tank1": "Chrono-Tank Mk1",
+  "item.tutm.chrono_tank2": "Chrono-Tank Mk2",
+  "item.tutm.chrono_tank3": "Chrono-Tank Mk3",
+  "curios.identifier.chrono_tank": "Chrono-Tank"
 }

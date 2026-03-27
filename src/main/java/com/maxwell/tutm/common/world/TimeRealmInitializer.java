@@ -9,6 +9,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import java.util.Optional;
 
+@SuppressWarnings("removal")
 public class TimeRealmInitializer {
     public static void placeStructure(ServerLevel level, BlockPos pos, String structurePath) {
         StructureTemplateManager manager = level.getStructureManager();

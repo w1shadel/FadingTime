@@ -10,7 +10,6 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModEffects {
     public static final DeferredRegister<MobEffect> MOB_EFFECTS =
             DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, TUTM.MODID);
-
     public static final RegistryObject<MobEffect> TIME_DISORDER = MOB_EFFECTS.register(
             "time_disorder", TimeDisorderEffect::new
     );

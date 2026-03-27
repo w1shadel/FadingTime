@@ -20,13 +20,11 @@ public class LaserOctaBurstGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        // 常に撃っているレーザーとは別に、200回に1回くらいの頻度で発動
         return boss.getTarget() != null && boss.tickCount % 200 == 0;
     }
 
     @Override
     public boolean canContinueToUse() {
-        // 8本撃ち終わるまでゴールを継続する
         return boss.getTarget() != null && placedCount < 8;
     }
 
@@ -40,21 +38,15 @@ public class LaserOctaBurstGoal extends Goal {
     public void tick() {
         LivingEntity target = boss.getTarget();
         if (target == null) return;
-
         timer++;
-        // 2ティックおきに設置（合計14ティックで8本設置）
         if (timer % 2 == 0 && placedCount < 8) {
-            // プレイヤーの周囲に円形に配置
             double angle = placedCount * (Math.PI * 2 / 8);
             double x = target.getX() + Math.cos(angle) * 6;
             double z = target.getZ() + Math.sin(angle) * 6;
             Vec3 spawnPos = new Vec3(x, target.getY() + 2, z);
-
-            int initialAge = - ( (7 - placedCount) * 2 );
-
+            int initialAge = -((7 - placedCount) * 2);
             TemporalLaserEntity laser = new TemporalLaserEntity(boss.level(), boss, target.position(), initialAge);
             boss.level().addFreshEntity(laser);
-
             placedCount++;
         }
     }

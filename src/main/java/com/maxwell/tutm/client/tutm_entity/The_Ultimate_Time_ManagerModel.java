@@ -9,6 +9,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 
+@SuppressWarnings("removal")
 public class The_Ultimate_Time_ManagerModel extends HierarchicalModel<The_Ultimate_TimeManagerEntity> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(TUTM.MODID, "the_ultimate_time_manager"), "main");
     public final ModelPart effectA;

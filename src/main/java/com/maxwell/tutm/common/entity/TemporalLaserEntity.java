@@ -29,21 +29,26 @@ import java.util.List;
 )
 public class TemporalLaserEntity extends Entity {
     public static final int CHARGE_TIME = 18;
+    public static final int DURATION = 38;
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Vector3f> LASER_DIR = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.VECTOR3);
-    public static final int DURATION = 38;
+    private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.BOOLEAN);
     private Entity owner;
-    private boolean spawnedInTimeStop = false;
+
     public TemporalLaserEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
     }
 
-    public TemporalLaserEntity(Level level, LivingEntity owner, Vec3 targetPos,int inithalAge) {
+    public TemporalLaserEntity(Level level, LivingEntity owner, Vec3 targetPos, int inithalAge) {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
         this.entityData.set(AGE, inithalAge);
-        this.setPos(owner.getX(), owner.getEyeY(), owner.getZ());
+        Vec3 pos = owner.position().add(0, owner.getEyeHeight(), 0);
+        this.setPos(pos.x, pos.y, pos.z);
+        this.xo = pos.x;
+        this.yo = pos.y;
+        this.zo = pos.z;
         double dx = targetPos.x - this.getX();
         double dy = targetPos.y - this.getY();
         double dz = targetPos.z - this.getZ();
@@ -56,7 +61,7 @@ public class TemporalLaserEntity extends Entity {
         this.xRotO = pitch;
         this.entityData.set(LASER_DIR, new Vec3(dx, dy, dz).normalize().toVector3f());
         if (TimeManager.isTimeStopped()) {
-            this.spawnedInTimeStop = true;
+            this.entityData.set(STACKED, true);
         }
     }
 
@@ -64,6 +69,7 @@ public class TemporalLaserEntity extends Entity {
     protected void defineSynchedData() {
         this.entityData.define(AGE, 0);
         this.entityData.define(LASER_DIR, new Vector3f(0, 0, 0));
+        this.entityData.define(STACKED, false);
     }
 
     public int getLaserAge() {
@@ -74,27 +80,27 @@ public class TemporalLaserEntity extends Entity {
         Vector3f v = this.entityData.get(LASER_DIR);
         return new Vec3(v.x(), v.y(), v.z());
     }
+
     @Override
     public void tick() {
         if (TimeManager.isTimeStopped()) {
+            this.entityData.set(STACKED, true);
             this.entityData.set(AGE, 0);
-            this.spawnedInTimeStop = true;
+            this.setPos(this.xo, this.yo, this.zo);
+            this.setDeltaMovement(Vec3.ZERO);
             return;
         }
         super.tick();
         int age = getLaserAge();
-        if (this.spawnedInTimeStop) {
-            this.entityData.set(AGE, CHARGE_TIME);
-            age = CHARGE_TIME;
-            this.spawnedInTimeStop = false;
+        if (this.entityData.get(STACKED)) {
+            this.entityData.set(STACKED, false);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    ModSounds.LASER_BURST.get(), SoundSource.HOSTILE, 0.7F, 1.2F + random.nextFloat() * 0.5F);
+                    ModSounds.LASER_BURST.get(), SoundSource.HOSTILE, 0.8F, 1.5F);
         }
         if (age == 1) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSounds.LASER_CHARGE.get(), SoundSource.HOSTILE, 0.5F, 2.0F);
         }
-
         if (age == CHARGE_TIME) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSounds.LASER_BURST.get(), SoundSource.HOSTILE, 0.8F, 1.5F);
@@ -109,25 +115,20 @@ public class TemporalLaserEntity extends Entity {
             this.discard();
         }
     }
+
     private void applyDamageTrace() {
         Vec3 start = this.position();
         Vec3 dir = getLaserDirection();
-
-        // このtickですでに攻撃した相手をメモする（多重カウント防止）
         java.util.Set<LivingEntity> hitInThisTick = new java.util.HashSet<>();
-
         for (int i = 0; i < 64; i++) {
             Vec3 checkPos = start.add(dir.scale(i));
             AABB area = new AABB(
                     checkPos.x - 0.5, checkPos.y - 0.8, checkPos.z - 0.5,
                     checkPos.x + 0.5, checkPos.y + 0.8, checkPos.z + 0.5
             );
-
             List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area);
-
             for (LivingEntity target : targets) {
                 if (hitInThisTick.contains(target)) continue;
-
                 if (!(this.owner instanceof The_Ultimate_TimeManagerEntity && target == this.owner)) {
                     EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10.0F);
                     hitInThisTick.add(target);
@@ -135,6 +136,7 @@ public class TemporalLaserEntity extends Entity {
             }
         }
     }
+
     @Override
     protected void readAdditionalSaveData(CompoundTag nbt) {
         if (nbt.contains("LaserAge")) this.entityData.set(AGE, nbt.getInt("LaserAge"));

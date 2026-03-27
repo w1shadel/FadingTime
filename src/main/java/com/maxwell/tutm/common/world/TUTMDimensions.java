@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 
+@SuppressWarnings("removal")
 public class TUTMDimensions {
     public static final ResourceKey<Level> TIME_REALM_LEVEL_KEY = ResourceKey.create(
             Registries.DIMENSION,

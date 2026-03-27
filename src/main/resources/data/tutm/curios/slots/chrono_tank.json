@@ -1,0 +1,7 @@
+{
+  "size": 1,
+  "operation": "SET",
+  "order": 10,
+  "icon": "tutm:slot/chrono_tank_slot_icon",
+  "render_toggle": true
+}

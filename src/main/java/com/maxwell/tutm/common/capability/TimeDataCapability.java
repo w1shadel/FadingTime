@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("removal")
 @Mod.EventBusSubscriber(modid = TUTM.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TimeDataCapability {
     public static final Capability<TimeData> INSTANCE = CapabilityManager.get(new CapabilityToken<>() {
@@ -22,12 +23,21 @@ public class TimeDataCapability {
     }
 
     public static class TimeData {
+        public int tier = 1;
         public double currentCost = 0;
-        public double maxCost = 1000000;
+
+        public double getMaxCost() {
+            return switch (tier) {
+                case 1 -> 100000.0;
+                case 2 -> 500000.0;
+                case 3 -> 2000000.0;
+                default -> 0.0;
+            };
+        }
 
         public void copyFrom(TimeData source) {
+            this.tier = source.tier;
             this.currentCost = source.currentCost;
-            this.maxCost = source.maxCost;
         }
     }
 
@@ -44,15 +54,15 @@ public class TimeDataCapability {
         @Override
         public CompoundTag serializeNBT() {
             CompoundTag nbt = new CompoundTag();
+            nbt.putInt("tier", data.tier);
             nbt.putDouble("cost", data.currentCost);
-            nbt.putDouble("max", data.maxCost);
             return nbt;
         }
 
         @Override
         public void deserializeNBT(CompoundTag nbt) {
+            data.tier = nbt.getInt("tier");
             data.currentCost = nbt.getDouble("cost");
-            data.maxCost = nbt.getDouble("max");
         }
     }
 }

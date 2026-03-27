@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
@@ -47,6 +48,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private double orbitAngle = 0;
     private int teleportCooldown = 0;
     private int divineWaveCooldown = 0;
+    private int timeStopCooldown = 200;
 
     public The_Ultimate_TimeManagerEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -54,42 +56,53 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         this.lastSecondFormState = false;
         this.setNoGravity(true);
     }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 1000.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.4D) // 基本速度
+                .add(Attributes.MOVEMENT_SPEED, 0.4D)
                 .add(Attributes.ATTACK_DAMAGE, 20.0D)
-                .add(Attributes.FOLLOW_RANGE, 128.0D) // 認識範囲を広げる
-                .add(Attributes.FLYING_SPEED, 0.6D);   // 飛行速度
+                .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(Attributes.FLYING_SPEED, 0.6D);
     }
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
+
     @Override
     public void aiStep() {
         if (this.level().isClientSide) {
             super.aiStep();
             return;
         }
-
+        float healthPercent = this.getHealth() / this.getMaxHealth();
+        int factor = 1;
+        if (healthPercent <= 0.25F) factor = 4;
+        else if (healthPercent <= 0.50F) factor = 3;
+        else if (healthPercent <= 0.75F) factor = 2;
+        TimeManager.setBossAcceleration(factor);
+        timeStopCooldown--;
+        if (!TimeManager.isTimeStopped() && timeStopCooldown <= 0 && this.getTarget() != null) {
+            if (this.random.nextFloat() < 0.25F) {
+                TimeManager.startBossTimeStop((ServerLevel) this.level(), 60);
+                timeStopCooldown = 400;
+            }
+        }
+        TimeManager.startBossTimeStop((ServerLevel) this.level(), 120);
         if (this.getTarget() == null || !this.getTarget().isAlive()) {
             Player nearestPlayer = this.level().getNearestPlayer(this.getX(), this.getY(), this.getZ(), 64.0D, false);
             if (nearestPlayer != null && !nearestPlayer.isCreative() && !nearestPlayer.isSpectator()) {
                 this.setTarget(nearestPlayer);
             }
         }
-
         this.setNoGravity(true);
-
         LivingEntity target = this.getTarget();
         if (target != null) {
             handleFlightMovement(target);
-
             constantLaserTimer++;
             int fireRate = isSecondForm() ? 4 : 8;
-
             if (constantLaserTimer >= fireRate) {
                 shootConstantLaser(target);
                 constantLaserTimer = 0;
@@ -97,19 +110,17 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         } else {
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.5, 0.5, 0.5).add(0, 0.02, 0));
         }
-
-        // ディバインウェーブ発動
         if (!this.level().isClientSide) {
             divineWaveCooldown--;
             if (divineWaveCooldown <= 0) {
                 DivineWaveEntity wave = new DivineWaveEntity(this.level(), this);
                 this.level().addFreshEntity(wave);
-                divineWaveCooldown = isSecondForm() ? 400 : 600; // 20秒 or 30秒
+                divineWaveCooldown = isSecondForm() ? 400 : 600;
             }
         }
-
         super.aiStep();
     }
+
     @Override
     public Component getDisplayName() {
         if (isSecondForm()) {
@@ -211,6 +222,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private boolean isMoving() {
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D;
     }
+
     @Override
     protected void registerGoals() {
         super.registerGoals();
@@ -219,13 +231,13 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
+
     private void handleFlightMovement(LivingEntity target) {
         orbitAngle += isSecondForm() ? 0.08 : 0.04;
         double radius = 8.0 + Math.sin(this.tickCount * 0.05) * 4.0;
         double targetX = target.getX() + Math.cos(orbitAngle) * radius;
         double targetZ = target.getZ() + Math.sin(orbitAngle) * radius;
         double targetY = target.getY() + 6.0 + Math.sin(this.tickCount * 0.1) * 2.0;
-
         Vec3 targetVec = new Vec3(targetX, targetY, targetZ);
         Vec3 moveVec = targetVec.subtract(this.position());
         double speed = isSecondForm() ? 0.25 : 0.15;
@@ -234,7 +246,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         this.getLookControl().setLookAt(target, 100F, 100F);
         double dist = this.distanceTo(target);
         teleportCooldown--;
-
         if (teleportCooldown <= 0) {
             if (dist > 32.0) {
                 this.moveTo(target.getX(), target.getY() + 10, target.getZ());
@@ -246,6 +257,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             }
         }
     }
+
     private void shootConstantLaser(LivingEntity target) {
         Vec3 velocity = target.getDeltaMovement();
         Vec3 predictedPos = target.position().add(
@@ -253,7 +265,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                 0,
                 velocity.z * 15
         ).add((random.nextDouble() - 0.5) * 3, 0, (random.nextDouble() - 0.5) * 3);
-
         TemporalLaserEntity laser = new TemporalLaserEntity(this.level(), this, predictedPos, 0);
         this.level().addFreshEntity(laser);
     }

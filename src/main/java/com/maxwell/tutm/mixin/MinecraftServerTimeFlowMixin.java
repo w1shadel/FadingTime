@@ -22,6 +22,9 @@ public abstract class MinecraftServerTimeFlowMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tick(Ljava/util/function/BooleanSupplier;)V")
     )
     private void tutm$redirectLevelTick(ServerLevel serverlevel, BooleanSupplier pHasTimeLeft) {
+        for (ServerPlayer player : this.getPlayerList().getPlayers()) {
+            TimeManager.serverTick(player);
+        }
         if (TimeManager.isTimeStopped()) {
             TimeManager.tickImmuneEntitiesOnly(serverlevel);
             return;
@@ -29,9 +32,6 @@ public abstract class MinecraftServerTimeFlowMixin {
         if (TimeManager.isRewinding()) {
             TimeManager.handleRewindTick(serverlevel);
             return;
-        }
-        for (ServerPlayer player : this.getPlayerList().getPlayers()) {
-            TimeManager.serverTick(player);
         }
         serverlevel.tick(pHasTimeLeft);
     }

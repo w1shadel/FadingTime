@@ -38,19 +38,13 @@ import java.util.UUID;
         renderer = DivineWaveRenderer.class
 )
 public class DivineWaveEntity extends Entity {
-
     public static final int MAX_RADIUS = 60;
-    // 拡張にかけるティック数 (60tick = 3秒 で最大半径へ)
     public static final int EXPAND_TICKS = 60;
-    // この後フェードアウト
     public static final int FADE_TICKS = 10;
-
     private static final EntityDataAccessor<Integer> AGE =
             SynchedEntityData.defineId(DivineWaveEntity.class, EntityDataSerializers.INT);
-
-    private Entity owner;
-    // すでにヒットしたエンティティ（1ヒット保証）
     private final Set<UUID> alreadyHit = new HashSet<>();
+    private Entity owner;
 
     public DivineWaveEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -73,7 +67,9 @@ public class DivineWaveEntity extends Entity {
         return this.entityData.get(AGE);
     }
 
-    /** 現在の半径（0〜MAX_RADIUS）をクライアント含む全体で参照するために公開 */
+    /**
+     * 現在の半径（0〜MAX_RADIUS）をクライアント含む全体で参照するために公開
+     */
     public float getCurrentRadius() {
         int age = getWaveAge();
         if (age >= EXPAND_TICKS) return MAX_RADIUS;
@@ -85,29 +81,24 @@ public class DivineWaveEntity extends Entity {
         super.tick();
         int age = getWaveAge();
         this.entityData.set(AGE, age + 1);
-
         if (age >= EXPAND_TICKS + FADE_TICKS) {
             this.discard();
             return;
         }
         if (this.level().isClientSide) return;
-
         float radius = getCurrentRadius();
         if (radius <= 0) return;
         float innerR = Math.max(0, radius - 3.0f);
         Vec3 center = this.position();
-
         AABB broad = new AABB(
                 center.x - radius, center.y - radius, center.z - radius,
                 center.x + radius, center.y + radius, center.z + radius
         );
-
         List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, broad);
         for (LivingEntity t : targets) {
             if (t == owner || t instanceof The_Ultimate_TimeManagerEntity) continue;
             if (t instanceof Player p && (p.isCreative() || p.isSpectator())) continue;
             if (alreadyHit.contains(t.getUUID())) continue;
-
             double dist = t.position().distanceTo(center);
             if (dist <= radius && dist >= innerR) {
                 applyWaveEffect(t);

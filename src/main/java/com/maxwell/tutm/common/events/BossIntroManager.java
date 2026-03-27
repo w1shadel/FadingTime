@@ -32,7 +32,7 @@ public class BossIntroManager {
 
     private static void spawnBossWithCeremony(ServerLevel level, ServerPlayer player) {
         TimeManager.forceNormalize();
-        TimeManager.startBossTimeStop(level);
+        TimeManager.startBossTimeStop(level, 60);
         The_Ultimate_TimeManagerEntity boss = new The_Ultimate_TimeManagerEntity(ModEntities.get(The_Ultimate_TimeManagerEntity.class), level);
         level.addFreshEntity(boss);
         boss.moveTo(0.5, 70.0, 0.5, 180, 0);

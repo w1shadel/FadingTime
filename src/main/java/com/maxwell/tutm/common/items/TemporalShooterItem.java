@@ -30,7 +30,7 @@ public class TemporalShooterItem extends Item {
                 Vec3 eyePos = player.getEyePosition();
                 Vec3 lookVec = player.getLookAngle();
                 Vec3 targetPos = eyePos.add(lookVec.scale(64.0));
-                TemporalLaserEntity laser = new TemporalLaserEntity(level, player, targetPos,0);
+                TemporalLaserEntity laser = new TemporalLaserEntity(level, player, targetPos, 0);
                 level.addFreshEntity(laser);
                 player.swing(player.getUsedItemHand());
             }

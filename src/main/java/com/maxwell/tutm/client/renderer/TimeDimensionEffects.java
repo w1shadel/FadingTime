@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
+@SuppressWarnings("removal")
 public class TimeDimensionEffects extends DimensionSpecialEffects {
     private static final ResourceLocation CLOCK_TEXTURE = new ResourceLocation(TUTM.MODID, "textures/misc/floating_clock.png");
 

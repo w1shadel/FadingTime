@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
+@SuppressWarnings("removal")
 public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
     public TemporalLaserRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -22,14 +23,11 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
     public void render(TemporalLaserEntity entity, float entityYaw, float partialTick, PoseStack pose, MultiBufferSource buffer, int packedLight) {
         float pt = TimeManager.isTimeStopped() ? 0.0F : partialTick;
         float age = (float) entity.getLaserAge() + pt;
-
         pose.pushPose();
         float yaw = Mth.lerp(pt, entity.yRotO, entity.getYRot());
         float pitch = Mth.lerp(pt, entity.xRotO, entity.getXRot());
         pose.mulPose(Axis.YP.rotationDegrees(-yaw));
         pose.mulPose(Axis.XP.rotationDegrees(pitch));
-
-        // 時止め中の「震え」演出（スタックされている感）
         if (TimeManager.isTimeStopped()) {
             pose.translate(
                     (entity.level().random.nextFloat() - 0.5f) * 0.05f,
@@ -37,12 +35,9 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
                     0
             );
         }
-
         VertexConsumer builder = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
         float baseRadius = 1.0F;
-
-
         if (age < TemporalLaserEntity.CHARGE_TIME) {
             float progress = age / (float) TemporalLaserEntity.CHARGE_TIME;
             float easeProgress = Mth.sin(progress * (float) Math.PI / 2);
@@ -60,9 +55,8 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
             renderHollowPolygon(builder, mat, distD, radD, 8, 0.08F, alpha, -age * 0.5F);
 
         } else {
-            float beamDuration = (float)(TemporalLaserEntity.DURATION - TemporalLaserEntity.CHARGE_TIME);
+            float beamDuration = (float) (TemporalLaserEntity.DURATION - TemporalLaserEntity.CHARGE_TIME);
             float beamAlpha = Mth.clamp(1.0F - (age - TemporalLaserEntity.CHARGE_TIME) / beamDuration, 0, 1);
-
             if (beamAlpha > 0) {
                 drawCrossedQuads(builder, mat, 0.8F, 64.0F, 0.7f, 0.0f, 1.0f, beamAlpha * 0.6f);
                 drawCrossedQuads(builder, mat, 0.3F, 64.0F, 0.9f, 0.6f, 1.0f, beamAlpha);

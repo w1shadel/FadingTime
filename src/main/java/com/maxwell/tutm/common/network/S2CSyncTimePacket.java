@@ -8,12 +8,14 @@ import java.util.function.Supplier;
 
 public class S2CSyncTimePacket {
     private final double cost, max;
+    private final int tier;
     private final boolean stopped, rewinding;
     private final int acceleration;
 
-    public S2CSyncTimePacket(double cost, double max, boolean stopped, int acceleration, boolean rewinding) {
+    public S2CSyncTimePacket(double cost, double max, int tier, boolean stopped, int acceleration, boolean rewinding) {
         this.cost = cost;
         this.max = max;
+        this.tier = tier;
         this.stopped = stopped;
         this.acceleration = acceleration;
         this.rewinding = rewinding;
@@ -22,18 +24,29 @@ public class S2CSyncTimePacket {
     public static void encode(S2CSyncTimePacket msg, FriendlyByteBuf buf) {
         buf.writeDouble(msg.cost);
         buf.writeDouble(msg.max);
+        buf.writeInt(msg.tier);
         buf.writeBoolean(msg.stopped);
         buf.writeInt(msg.acceleration);
         buf.writeBoolean(msg.rewinding);
     }
 
     public static S2CSyncTimePacket decode(FriendlyByteBuf buf) {
-        return new S2CSyncTimePacket(buf.readDouble(), buf.readDouble(), buf.readBoolean(), buf.readInt(), buf.readBoolean());
+        return new S2CSyncTimePacket(
+                buf.readDouble(),
+                buf.readDouble(),
+                buf.readInt(),
+                buf.readBoolean(),
+                buf.readInt(),
+                buf.readBoolean()
+        );
     }
 
     public static void handle(S2CSyncTimePacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            TimeManager.setClientData(msg.cost, msg.max, msg.stopped, msg.acceleration, msg.rewinding);
+            net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> {
+                TimeManager.setClientState(msg.stopped, msg.acceleration, msg.rewinding);
+                com.maxwell.tutm.client.renderer.TimeRenderHandler.setClientData(msg.cost, msg.max, msg.tier);
+            });
         });
         ctx.get().setPacketHandled(true);
     }

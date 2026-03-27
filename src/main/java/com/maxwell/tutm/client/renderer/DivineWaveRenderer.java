@@ -16,8 +16,8 @@ import org.joml.Matrix4f;
  * 拡張する薄白い球殻をワイヤーフレーム状の複数の円弧で表現する
  * エンティティは原点固定なので、radius分だけ座標変換して描画する
  */
+@SuppressWarnings("removal")
 public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
-
     public DivineWaveRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
@@ -27,71 +27,57 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
                        PoseStack pose, MultiBufferSource buffer, int packedLight) {
         int age = entity.getWaveAge();
         float rawRadius = entity.getCurrentRadius();
-        // partialTick補間
         float radius = rawRadius + (rawRadius > 0 ? (1.0f / DivineWaveEntity.EXPAND_TICKS * DivineWaveEntity.MAX_RADIUS) * partialTick : 0);
         radius = Math.min(radius, DivineWaveEntity.MAX_RADIUS);
-
-        // フェードアウト計算
         float alpha;
         if (age < DivineWaveEntity.EXPAND_TICKS) {
             alpha = 0.35f;
         } else {
-            float fadeProgress = (float)(age - DivineWaveEntity.EXPAND_TICKS) / DivineWaveEntity.FADE_TICKS;
+            float fadeProgress = (float) (age - DivineWaveEntity.EXPAND_TICKS) / DivineWaveEntity.FADE_TICKS;
             alpha = 0.35f * (1.0f - fadeProgress);
         }
         if (alpha <= 0) return;
-
-        // 衝撃波の白い輝き
         float r = 0.95f, g = 0.97f, b = 1.0f;
-        // 外側はわずかに青みがかる
         float rInner = 0.7f, gInner = 0.85f, bInner = 1.0f;
-
         VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
-
-        // 球殻を3軸の円で表現（緯度・経度・斜め）
-        int rings = 16; // リングの分割数
-        float thickness = 0.55f; // リングの太さ
-
-        // XY面の水平リング群（緯度）
+        int rings = 16;
+        float thickness = 0.55f;
         for (int lat = 0; lat < rings; lat++) {
-            float phi = (float)(Math.PI * lat / rings); // 0〜π
+            float phi = (float) (Math.PI * lat / rings);
             float y = Mth.cos(phi) * radius;
             float rLat = Mth.sin(phi) * radius;
-            float a = alpha * (0.5f + 0.5f * Mth.sin(phi)); // 赤道付近を明るく
+            float a = alpha * (0.5f + 0.5f * Mth.sin(phi));
             drawRing(vc, mat, rLat, y, 32, thickness, r, g, b, a);
         }
-
-        // YZ面の縦リング群（経度）
         for (int lon = 0; lon < rings / 2; lon++) {
-            float theta = (float)(Math.PI * lon / (rings / 2));
-            // 縦リングは描画コストが高いので代わりに斜めリングで代替
+            float theta = (float) (Math.PI * lon / (rings / 2));
             drawTiltedRing(vc, mat, radius, 32, thickness * 0.6f, theta, rInner, gInner, bInner, alpha * 0.4f);
         }
     }
 
-    /** 水平リング（XZ面）を y オフセットで描画 */
+    /**
+     * 水平リング（XZ面）を y オフセットで描画
+     */
     private void drawRing(VertexConsumer vc, Matrix4f mat,
                           float ringRadius, float yOffset,
                           int segments, float thickness,
                           float r, float g, float b, float a) {
         if (ringRadius < 0.01f) return;
-        float step = (float)(Math.PI * 2.0 / segments);
+        float step = (float) (Math.PI * 2.0 / segments);
         float inner = ringRadius - thickness;
         for (int i = 0; i < segments; i++) {
             float a1 = i * step, a2 = (i + 1) * step;
             float x1o = Mth.cos(a1) * ringRadius, z1o = Mth.sin(a1) * ringRadius;
             float x2o = Mth.cos(a2) * ringRadius, z2o = Mth.sin(a2) * ringRadius;
-            float x1i = Mth.cos(a1) * inner,      z1i = Mth.sin(a1) * inner;
-            float x2i = Mth.cos(a2) * inner,      z2i = Mth.sin(a2) * inner;
-            // 上面クワッド
+            float x1i = Mth.cos(a1) * inner, z1i = Mth.sin(a1) * inner;
+            float x2i = Mth.cos(a2) * inner, z2i = Mth.sin(a2) * inner;
             drawQuad(vc, mat,
                     x1i, yOffset + thickness * 0.5f, z1i,
                     x2i, yOffset + thickness * 0.5f, z2i,
                     x2o, yOffset + thickness * 0.5f, z2o,
                     x1o, yOffset + thickness * 0.5f, z1o,
                     r, g, b, a);
-            // 下面クワッド
             drawQuad(vc, mat,
                     x1o, yOffset - thickness * 0.5f, z1o,
                     x2o, yOffset - thickness * 0.5f, z2o,
@@ -101,22 +87,22 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
         }
     }
 
-    /** 任意の傾きを持つリング（縦方向の球の経線表現） */
+    /**
+     * 任意の傾きを持つリング（縦方向の球の経線表現）
+     */
     private void drawTiltedRing(VertexConsumer vc, Matrix4f mat,
                                 float radius, int segments, float thickness,
                                 float tiltAngle,
                                 float r, float g, float b, float a) {
-        float step = (float)(Math.PI * 2.0 / segments);
+        float step = (float) (Math.PI * 2.0 / segments);
         float inner = radius - thickness;
         float cosT = Mth.cos(tiltAngle), sinT = Mth.sin(tiltAngle);
         for (int i = 0; i < segments; i++) {
             float a1 = i * step, a2 = (i + 1) * step;
-            // 基本はXY平面上の円、Z軸まわりに tiltAngle 回転
-            float x1o = Mth.cos(a1) * radius,  y1o = Mth.sin(a1) * radius;
-            float x2o = Mth.cos(a2) * radius,  y2o = Mth.sin(a2) * radius;
-            float x1i = Mth.cos(a1) * inner,   y1i = Mth.sin(a1) * inner;
-            float x2i = Mth.cos(a2) * inner,   y2i = Mth.sin(a2) * inner;
-            // XY→XZ への回転（傾き）
+            float x1o = Mth.cos(a1) * radius, y1o = Mth.sin(a1) * radius;
+            float x2o = Mth.cos(a2) * radius, y2o = Mth.sin(a2) * radius;
+            float x1i = Mth.cos(a1) * inner, y1i = Mth.sin(a1) * inner;
+            float x2i = Mth.cos(a2) * inner, y2i = Mth.sin(a2) * inner;
             drawQuad(vc, mat,
                     x1i * cosT, y1i, x1i * -sinT,
                     x2i * cosT, y2i, x2i * -sinT,
@@ -132,10 +118,10 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
                           float x3, float y3, float z3,
                           float x4, float y4, float z4,
                           float r, float g, float b, float a) {
-        vc.vertex(mat, x1, y1, z1).color(r,g,b,a).uv(0,0).overlayCoords(0).uv2(240).normal(0,1,0).endVertex();
-        vc.vertex(mat, x2, y2, z2).color(r,g,b,a).uv(1,0).overlayCoords(0).uv2(240).normal(0,1,0).endVertex();
-        vc.vertex(mat, x3, y3, z3).color(r,g,b,a).uv(1,1).overlayCoords(0).uv2(240).normal(0,1,0).endVertex();
-        vc.vertex(mat, x4, y4, z4).color(r,g,b,a).uv(0,1).overlayCoords(0).uv2(240).normal(0,1,0).endVertex();
+        vc.vertex(mat, x1, y1, z1).color(r, g, b, a).uv(0, 0).overlayCoords(0).uv2(240).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x2, y2, z2).color(r, g, b, a).uv(1, 0).overlayCoords(0).uv2(240).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x3, y3, z3).color(r, g, b, a).uv(1, 1).overlayCoords(0).uv2(240).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x4, y4, z4).color(r, g, b, a).uv(0, 1).overlayCoords(0).uv2(240).normal(0, 1, 0).endVertex();
     }
 
     @Override

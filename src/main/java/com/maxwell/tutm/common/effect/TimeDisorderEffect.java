@@ -10,12 +10,11 @@ import net.minecraft.world.entity.LivingEntity;
  */
 public class TimeDisorderEffect extends MobEffect {
     public TimeDisorderEffect() {
-        super(MobEffectCategory.HARMFUL, 0x8800CC); // 紫色
+        super(MobEffectCategory.HARMFUL, 0x8800CC);
     }
 
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
-        // ティックごとの追加効果は不要（TimeManagerでブロックする）
     }
 
     @Override

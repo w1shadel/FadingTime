@@ -28,7 +28,7 @@ public class ChronosGearGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return false; // 召喚は瞬時完了
+        return false;
     }
 
     @Override

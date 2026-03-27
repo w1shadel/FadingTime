@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ChunkMap.class)
 public interface ChunkMapAccessor {
-    // 全てのエンティティ追跡器（TrackedEntity）を取得するためのマップ
     @Accessor("entityMap")
     Int2ObjectMap<?> getEntityMap();
 }
