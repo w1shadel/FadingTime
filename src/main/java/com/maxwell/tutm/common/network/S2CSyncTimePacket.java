@@ -34,7 +34,6 @@ public class S2CSyncTimePacket {
     public static void handle(S2CSyncTimePacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             TimeManager.setClientData(msg.cost, msg.max, msg.stopped, msg.acceleration, msg.rewinding);
-            TimeManager.updateClientEffects();
         });
         ctx.get().setPacketHandled(true);
     }

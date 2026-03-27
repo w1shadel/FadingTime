@@ -1,13 +1,20 @@
 {
-  "targets": [ "swap" ],
+  "targets": [
+    "swap"
+  ],
   "passes": [
     {
       "name": "tutm:time_distortion",
       "intarget": "minecraft:main",
       "outtarget": "swap",
-      "auxtargets": [ ],
+      "auxtargets": [],
       "uniforms": [
-        { "name": "Intensity", "values": [ 0.0 ] }
+        {
+          "name": "Intensity",
+          "values": [
+            0.0
+          ]
+        }
       ]
     },
     {

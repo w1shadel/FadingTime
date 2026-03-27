@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(EntityTickList.class)
 public interface EntityTickListAccessor {
-    // 内部の remove メソッドを呼び出す
     @Invoker("remove")
     void callRemove(Entity entity);
 }

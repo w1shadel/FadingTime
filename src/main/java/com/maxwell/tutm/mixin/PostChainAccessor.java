@@ -9,7 +9,6 @@ import java.util.List;
 
 @Mixin(PostChain.class)
 public interface PostChainAccessor {
-    // PostChainのプライベートな passes フィールドを公開するゲッターを定義
     @Accessor("passes")
     List<PostPass> getPasses();
 }

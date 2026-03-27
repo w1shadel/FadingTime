@@ -17,48 +17,48 @@ import java.util.function.Consumer;
 public abstract class LevelTimeManagerMixin {
     @Inject(method = "guardEntityTick", at = @At("HEAD"), cancellable = true)
     private <T extends Entity> void tutm$manageTemporalFlow(Consumer<T> pConsumerEntity, T pEntity, CallbackInfo ci) {
-        // --- 1. 逆行（Rewind）処理 ---
+        // 1. 時間逆行
         if (TimeManager.isRewinding()) {
             EntityState state = TimeManager.popState(pEntity);
             if (state != null) {
-                // 過去のステータスを強制適用
                 TimeManager.applyState(pEntity, state);
-                // 本来のTick処理（移動やダメージ計算）をキャンセル
                 ci.cancel();
-            } else {
-                // 履歴が尽きた場合、プレイヤーなら逆行終了（停止音などはTimeManager側で制御）
-                if (pEntity instanceof Player) {
-                    TimeManager.forceNormalize();
-                }
+            } else if (pEntity instanceof Player) {
+                TimeManager.forceNormalize();
             }
-            return; // 逆行中はここで終了
+            return;
         }
-        // --- 2. 停止（Time Stop）処理 ---
+
+        // 2. 時間停止
         if (TimeManager.isTimeStopped()) {
             if (!TimeManager.isImmune(pEntity)) {
-                // 慣性を消す（ガタつき防止）
-                pEntity.setDeltaMovement(Vec3.ZERO);
+                // 免疫がない相手は座標を固定して完全に止める
+                pEntity.setPos(pEntity.xo, pEntity.yo, pEntity.zo);
+                pEntity.setDeltaMovement(0, 0, 0);
                 ci.cancel();
                 return;
             }
-            // 免役持ち（プレイヤー等）は止まらずに次の処理（記録または加速）へ
         }
-        // --- 3. 記録（通常・加速・停止中の免役持ち） ---
-        // 逆行・停止（非免役）以外の時は常に履歴を記録し続ける
+
+        // 3. 状態記録（逆行用）
         TimeManager.recordState(pEntity);
-        // --- 4. 加速（Acceleration）処理 ---
+
+        // 4. 加速処理（免疫がある相手、または停止していない時のみ）
+        // 停止中でもボス（Immune）ならここを通るようにする
         int factor = TimeManager.getAccelerationFactor(pEntity);
-        if (factor > 1 && !TimeManager.isTimeStopped()) {
-            for (int i = 0; i < factor; i++) {
-                // 補間用座標の更新
+        if (factor > 1) {
+            for (int i = 0; i < factor - 1; i++) {
+                // 重要：次の accept(tick) の前に、現在の位置を「古い位置」として保存する
+                // これをしないと、クライアント側で補間（Interpolation）ができず瞬間移動に見える
                 pEntity.xo = pEntity.getX();
                 pEntity.yo = pEntity.getY();
                 pEntity.zo = pEntity.getZ();
                 pEntity.yRotO = pEntity.getYRot();
                 pEntity.xRotO = pEntity.getXRot();
+
                 pConsumerEntity.accept(pEntity);
             }
-            ci.cancel();
+            // 最後の1回は通常通り外側で実行される
         }
     }
 }

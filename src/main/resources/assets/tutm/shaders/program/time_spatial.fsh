@@ -3,8 +3,8 @@
 uniform sampler2D DiffuseSampler;
 uniform float StopProgress;
 uniform float Time;
-uniform float AccelFactor; // 加速倍率 (1.0以上)
-uniform float Mode;        // 1.0:加速, 2.0:停止, 3.0:逆行
+uniform float AccelFactor;// 加速倍率 (1.0以上)
+uniform float Mode;// 1.0:加速, 2.0:停止, 3.0:逆行
 
 in vec2 texCoord;
 out vec4 fragColor;

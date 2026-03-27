@@ -4,14 +4,19 @@ import com.maxwell.tutm.common.capability.TimeDataCapability;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.network.S2CSyncTimePacket;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
+import com.maxwell.tutm.init.ModEffects;
 import com.maxwell.tutm.init.ModItems;
 import com.maxwell.tutm.init.ModSounds;
+import com.maxwell.tutm.mixin.ChunkMapAccessor;
 import com.maxwell.tutm.mixin.PostChainAccessor;
 import com.maxwell.tutm.mixin.ServerLevelAccessor;
+import com.maxwell.tutm.mixin.TrackedEntityAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ChunkMap;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -41,6 +46,7 @@ public class TimeManager {
     public static void serverTick(ServerPlayer player) {
         player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
             boolean isUsingTime = isTimeStopped || isRewinding || accelerationFactor > 1;
+
             if (isUsingTime) {
                 double consumption = calculateConsumption();
                 if (data.currentCost >= consumption) {
@@ -53,6 +59,8 @@ public class TimeManager {
                     data.currentCost = Math.min(data.maxCost, data.currentCost + REGEN_PER_TICK);
                 }
             }
+
+            // パケット送信 (重要：これを Mixin から呼ぶことで、時間停止中も同期が維持される)
             TUTMPacketHandler.INSTANCE.send(
                     net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> player),
                     new S2CSyncTimePacket(data.currentCost, data.maxCost, isTimeStopped, accelerationFactor, isRewinding)
@@ -70,41 +78,42 @@ public class TimeManager {
 
     public static void updateClientEffects() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.gameRenderer == null) return;
-        if (isTimeStopped || isRewinding || accelerationFactor > 1) {
-            if (mc.gameRenderer.currentEffect() == null) {
+        if (mc.gameRenderer == null || mc.level == null) return;
+
+        boolean shouldEnable = isTimeStopped || isRewinding || accelerationFactor > 1;
+
+        if (shouldEnable) {
+            // シェーダーがまだロードされていない、または別のシェーダーが動いている場合
+            if (mc.gameRenderer.currentEffect() == null ||
+                    !mc.gameRenderer.currentEffect().getName().contains("time_spatial")) {
+
                 mc.gameRenderer.loadEffect(new ResourceLocation("tutm", "shaders/post/time_spatial.json"));
             }
+
+            // ユニフォーム（変数）の更新
             updateShaderUniforms();
+
+            // 時間停止演出の進行
             if (isTimeStopped && stopTransitionProgress < 1.0F) {
-                stopTransitionProgress += 0.05F;
+                stopTransitionProgress += 0.01F; // 少しゆっくりに調整
             }
         } else {
-            // Only shutdown if it's OUR shader. If it's a boss distortion or something else, leave it be.
-            var chain = mc.gameRenderer.currentEffect();
-            if (chain != null) {
-                try {
-                    var passes = ((PostChainAccessor) chain).getPasses();
-                    boolean isMyShader = false;
-                    for (var pass : passes) {
-                        if (pass.getEffect().getName().contains("time_spatial")) {
-                            isMyShader = true;
-                            break;
-                        }
-                    }
-                    if (isMyShader) {
-                        mc.gameRenderer.shutdownEffect();
-                    }
-                } catch (Exception e) {
-                    // Fallback to safety
-                }
+            // 無効化すべき時
+            if (mc.gameRenderer.currentEffect() != null &&
+                    mc.gameRenderer.currentEffect().getName().contains("time_spatial")) {
+
+                mc.gameRenderer.shutdownEffect();
+                stopTransitionProgress = 0.0F;
             }
-            stopTransitionProgress = 0.0F;
         }
     }
 
     public static void requestStop(Player player) {
         if (player.level().isClientSide) return;
+        if (hasTimeDisorder(player)) {
+            player.displayClientMessage(Component.literal("§5[時間障害] §c時間操作が封じられています"), true);
+            return;
+        }
         if (isRewinding) {
             player.displayClientMessage(Component.literal("§c逆行中は時を止められません"), true);
             return;
@@ -135,6 +144,10 @@ public class TimeManager {
 
     public static void requestRewind(Player player) {
         if (player.level().isClientSide) return;
+        if (hasTimeDisorder(player)) {
+            player.displayClientMessage(Component.literal("§5[時間障害] §c時間操作が封じられています"), true);
+            return;
+        }
         if (isTimeStopped) {
             player.displayClientMessage(Component.literal("§c停止中は逆行できません"), true);
             return;
@@ -166,19 +179,46 @@ public class TimeManager {
         isRewinding = false;
         accelerationFactor = 1;
     }
-
     public static boolean isImmune(Entity entity) {
         if (entity == null) return false;
         if (entity instanceof The_Ultimate_TimeManagerEntity) return true;
         if (entity instanceof Player player) {
-            boolean hasItem = player.getMainHandItem().getItem() == ModItems.DEBUG.get() ||
+            if (player.isCreative() || player.isSpectator()) return true;
+            return player.getMainHandItem().getItem() == ModItems.DEBUG.get() ||
                     player.getOffhandItem().getItem() == ModItems.DEBUG.get();
-            if (hasItem) return true;
-            if (entity.level().isClientSide) return player == Minecraft.getInstance().player;
         }
+
         return false;
     }
 
+    public static void tickImmuneEntitiesOnly(ServerLevel level) {
+        EntityTickList tickList = ((ServerLevelAccessor) level).getEntityTickList();
+        ChunkMap chunkMap = level.getChunkSource().chunkMap;
+        var entityMap = ((ChunkMapAccessor) chunkMap).getEntityMap();
+
+        tickList.forEach(entity -> {
+            if (entity.isRemoved()) return;
+
+            if (isImmune(entity)) {
+                // サーバー側でティックを進める
+                level.guardEntityTick(level::tickNonPassenger, entity);
+
+                // --- 追加：座標・向きのパケットを強制送信 ---
+                if (!level.isClientSide) {
+                    Object trackedEntity = entityMap.get(entity.getId());
+                    if (trackedEntity != null) {
+                        ServerEntity serverEntity = ((TrackedEntityAccessor) trackedEntity).getServerEntity();
+                        serverEntity.sendChanges();
+                    }
+                }
+            } else {
+                // 免疫がない相手は固定
+                entity.setPos(entity.xo, entity.yo, entity.zo);
+                entity.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+                entity.fallDistance = 0;
+            }
+        });
+    }
     private static void updateShaderUniforms() {
         var mc = Minecraft.getInstance();
         var postChain = mc.gameRenderer.currentEffect();
@@ -237,7 +277,10 @@ public class TimeManager {
 
     public static void setAccelerationFactor(Player player, int f) {
         if (player.level().isClientSide) return;
-        // 排他チェック：停止中や逆行中は加速させない
+        if (hasTimeDisorder(player)) {
+            player.displayClientMessage(Component.literal("§5[時間障害] §c時間操作が封じられています"), true);
+            return;
+        }
         if (isTimeStopped || isRewinding) {
             String power = isTimeStopped ? "停止" : "逆行";
             player.displayClientMessage(Component.literal("§c" + power + "中は加速できません"), true);
@@ -265,19 +308,11 @@ public class TimeManager {
         return clientMax > 0 ? clientCost / clientMax : 0;
     }
 
-    public static void tickImmuneEntitiesOnly(ServerLevel level) {
-        EntityTickList tickList = ((ServerLevelAccessor) level).getEntityTickList();
-        tickList.forEach(entity -> {
-            if (!entity.isRemoved() && isImmune(entity)) {
-                level.guardEntityTick(level::tickNonPassenger, entity);
-            } else {
-                entity.xo = entity.getX();
-                entity.yo = entity.getY();
-                entity.zo = entity.getZ();
-                entity.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
-            }
-        });
+    /** プレイヤーが時間障害を受けているか判定 */
+    public static boolean hasTimeDisorder(Player player) {
+        return player.hasEffect(ModEffects.TIME_DISORDER.get());
     }
+
 
     public static void handleRewindTick(ServerLevel level) {
         EntityTickList tickList = ((ServerLevelAccessor) level).getEntityTickList();
@@ -336,5 +371,31 @@ public class TimeManager {
         entity.setRemainingFireTicks(state.fireTicks());
         entity.setAirSupply(state.airSupply());
         entity.fallDistance = state.fallDist();
+    }
+
+    public static void startBossTimeStop(ServerLevel level) {
+        if (isRewinding) return;
+        isTimeStopped = true;
+        accelerationFactor = 1;
+        level.playSound(null, 0, 0, 0, ModSounds.TIME_STOP.get(), SoundSource.HOSTILE, 0.3F, 1.0F);
+    }
+
+    public static void stopBossTimeStop(ServerLevel level) {
+        isTimeStopped = false;
+        level.playSound(null, 0, 0, 0, ModSounds.TIME_START.get(), SoundSource.HOSTILE, 0.4F, 1.0F);
+    }
+
+    public static void setBossAcceleration(int factor) {
+        if (isTimeStopped || isRewinding) return;
+        accelerationFactor = factor;
+    }
+
+    public static void handleBossTick(ServerLevel level, The_Ultimate_TimeManagerEntity boss) {
+        int ticks = getAccelerationFactor(boss);
+        for (int i = 1; i < ticks; i++) {
+            if (!boss.isRemoved()) {
+                level.guardEntityTick(level::tickNonPassenger, boss);
+            }
+        }
     }
 }

@@ -28,5 +28,17 @@
     "sounds": [
       "tutm:rewind"
     ]
+  },
+  "laser_charge": {
+    "subtitle": "subtitles.tutm.laser_charge",
+    "sounds": [
+      "tutm:laser_charge"
+    ]
+  },
+  "laser_burst": {
+    "subtitle": "subtitles.tutm.laser_burst",
+    "sounds": [
+      "tutm:laser_burst"
+    ]
   }
 }

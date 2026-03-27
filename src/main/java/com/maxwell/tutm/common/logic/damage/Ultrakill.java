@@ -1,26 +1,19 @@
 package com.maxwell.tutm.common.logic.damage;
 
-import com.maxwell.tutm.mixin.EntityManagerAccessor;
 import com.maxwell.tutm.mixin.EntityTickListAccessor;
 import com.maxwell.tutm.mixin.ServerLevelAccessor;
-import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.entity.EntitySection;
-import net.minecraft.world.level.entity.EntitySectionStorage;
 import net.minecraft.world.level.entity.EntityTickList;
-import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
-public class MemoryCorruptionLogic {
+public class Ultrakill {
     private static Unsafe unsafe;
     private static long deadOffset;
     private static long removalReasonOffset;
@@ -38,8 +31,11 @@ public class MemoryCorruptionLogic {
             e.printStackTrace();
         }
     }
-    public static void nukeEntityMemory(Entity target) {
-        if (target == null || target instanceof Player) return;
+
+    public static void kill(Entity target) {
+        if (target instanceof Player) {
+        }
+        if (target == null) return;
         unsafe.putBoolean(target, deadOffset, true);
         unsafe.putObject(target, removalReasonOffset, Entity.RemovalReason.DISCARDED);
         if (target.level() instanceof ServerLevel serverLevel) {

@@ -1,6 +1,7 @@
 package com.maxwell.tutm;
 
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
+import com.maxwell.tutm.init.ModEffects;
 import com.maxwell.tutm.init.ModEntities;
 import com.maxwell.tutm.init.ModItems;
 import com.maxwell.tutm.init.ModSounds;
@@ -12,7 +13,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
 @Mod(TUTM.MODID)
 public class TUTM {
     public static final String MODID = "tutm";
@@ -21,9 +21,11 @@ public class TUTM {
     public TUTM() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ModItems.ITEMS.register(modEventBus);
+        ModEntities.autoRegister();
         ModEntities.ENTITIES.register(modEventBus);
         TUTMPacketHandler.register();
         ModSounds.SOUND_EVENTS.register(modEventBus);
+        ModEffects.MOB_EFFECTS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
     }
 

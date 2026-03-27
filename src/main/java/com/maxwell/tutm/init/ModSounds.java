@@ -1,7 +1,4 @@
-package com.maxwell.tutm.init;//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
+package com.maxwell.tutm.init;
 
 import com.maxwell.tutm.TUTM;
 import net.minecraft.resources.ResourceLocation;
@@ -23,4 +20,8 @@ public class ModSounds {
             () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "time_acceleration")));
     public static final RegistryObject<SoundEvent> REWIND = SOUND_EVENTS.register("rewind",
             () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "rewind")));
+    public static final RegistryObject<SoundEvent> LASER_BURST = SOUND_EVENTS.register("laser_burst",
+            () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "laser_burst")));
+    public static final RegistryObject<SoundEvent> LASER_CHARGE = SOUND_EVENTS.register("laser_charge",
+            () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "laser_charge")));
 }

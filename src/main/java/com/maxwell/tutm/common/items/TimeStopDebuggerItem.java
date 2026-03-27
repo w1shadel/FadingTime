@@ -1,7 +1,6 @@
 package com.maxwell.tutm.common.items;
 
 import com.maxwell.tutm.common.logic.TimeManager;
-import io.github.kosianodangoo.trialmonolith.common.helper.EntityHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;

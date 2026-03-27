@@ -2,11 +2,16 @@ package com.maxwell.tutm.client;
 
 import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.client.gui.TimeGaugeOverlay;
-import com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer;
+import com.maxwell.tutm.client.renderer.TimeDimensionEffects;
 import com.maxwell.tutm.client.tutm_entity.The_Ultimate_Time_ManagerModel;
 import com.maxwell.tutm.init.ModEntities;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -15,7 +20,18 @@ import net.minecraftforge.fml.common.Mod;
 public class ClientModEvents {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.THE_ULTIMATE_TIME_MANAGER.get(), The_Ultimate_Time_ManagerRenderer::new);
+        if (ModEntities.RENDERER_MAP.isEmpty()) {
+            System.out.println("[TUTM] 警告: RENDERER_MAPが空です。autoRegisterが失敗している可能性があります。");
+        }
+        ModEntities.RENDERER_MAP.forEach((reg, rendererClass) -> {
+            event.registerEntityRenderer((EntityType) reg.get(), context -> {
+                try {
+                    return (EntityRenderer) rendererClass.getConstructor(EntityRendererProvider.Context.class).newInstance(context);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
     }
 
     @SubscribeEvent
@@ -28,4 +44,8 @@ public class ClientModEvents {
         event.registerAboveAll("time_gauge", TimeGaugeOverlay.HUD);
     }
 
+    @SubscribeEvent
+    public static void onRegisterDimensionEffects(RegisterDimensionSpecialEffectsEvent event) {
+        event.register(new ResourceLocation(TUTM.MODID, "time_effects"), new TimeDimensionEffects());
+    }
 }

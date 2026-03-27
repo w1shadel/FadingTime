@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface ServerLevelAccessor {
     @Accessor("entityTickList")
     EntityTickList getEntityTickList();
+
     @Accessor("entityManager")
     PersistentEntitySectionManager<Entity> getEntityManager();
 }

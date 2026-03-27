@@ -1,0 +1,12 @@
+{
+  "type": "tutm:time_realm",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "tutm:time_realm_biome",
+      "layers": [
+        { "block": "minecraft:air", "height": 1 }
+      ]
+    }
+  }
+}

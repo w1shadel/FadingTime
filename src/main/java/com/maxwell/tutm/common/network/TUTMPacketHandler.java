@@ -21,5 +21,11 @@ public class TUTMPacketHandler {
                 .decoder(S2CSyncTimePacket::decode)
                 .consumerMainThread(S2CSyncTimePacket::handle)
                 .add();
+        INSTANCE.messageBuilder(UpdateBossBarPacket.class, packetId++)
+                .encoder(UpdateBossBarPacket::encode)
+                .decoder(UpdateBossBarPacket::decode)
+                .consumerMainThread(UpdateBossBarPacket::handle)
+                .add();
     }
+
 }

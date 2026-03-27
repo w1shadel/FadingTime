@@ -5,14 +5,18 @@
   "refmap": "tutm.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "EntityManagerAccessor",
+    "EntityTickListAccessor",
     "GameRendererTimeStopMixin",
+    "LevelTimeManagerMixin",
     "LivingEntityRendererTimeStopMixin",
     "MinecraftServerTimeFlowMixin",
-    "ServerLevelAccessor",
     "PostChainAccessor",
-    "LevelTimeManagerMixin",
-    "EntityManagerAccessor",
-    "EntityTickListAccessor"
+    "ServerLevelAccessor",
+    "LevelRendererTimeStopMixin",
+    "ChunkMapAccessor",
+    "TrackedEntityAccessor",
+    "EntityRenderDispatcherTimeStopMixin"
   ],
   "client": [
   ],
