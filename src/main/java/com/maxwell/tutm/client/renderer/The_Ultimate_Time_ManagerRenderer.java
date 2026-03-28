@@ -5,6 +5,7 @@ import com.maxwell.tutm.client.tutm_entity.The_Ultimate_Time_ManagerModel;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -37,7 +38,10 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
 
     @Override
     public void render(The_Ultimate_TimeManagerEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
-        super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, 0);
+        pPoseStack.pushPose();
+        pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
+        pPoseStack.popPose();
     }
 
     private static class TimeManagerGlowLayer extends RenderLayer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {

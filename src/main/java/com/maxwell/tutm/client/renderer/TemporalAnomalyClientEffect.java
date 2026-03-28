@@ -1,5 +1,6 @@
 package com.maxwell.tutm.client.renderer;
 
+import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.common.world.TUTMDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -11,7 +12,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = "tutm", value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = TUTM.MODID, value = Dist.CLIENT)
 public class TemporalAnomalyClientEffect {
     private static final Vec3 MONOLITH_POS = new Vec3(50, 0, 50);
     private static final double SPAWN_RADIUS = 8.0;

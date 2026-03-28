@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:iron_block"
+    },
+    "Y": {
+      "item": "minecraft:iron_ingot"
+    },
+    "X": {
+      "item": "tutm:chrono_tank1"
+    },
+    "Z": {
+      "item": "minecraft:glass"
+    },
+    "A": {
+      "item": "tutm:time_sand"
+    }
+  },
+  "pattern": [
+    "Y#Y",
+    "#XZ",
+    "YZA"
+  ],
+  "result": {
+    "item": "tutm:chrono_tank2"
+  },
+  "show_notification": true
+}

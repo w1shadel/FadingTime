@@ -12,11 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
-/**
- * クロノス・ギアのレンダラー
- * 歯車状の六角形リングを金色〜オレンジで描画し、待機中は回転のみ、
- * 飛翔中は螺旋残像エフェクト、バウンド中はパルスエフェクトを表示する
- */
 @SuppressWarnings("removal")
 public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
     public ChronosGearRenderer(EntityRendererProvider.Context context) {
@@ -51,9 +46,6 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
         super.render(entity, entityYaw, partialTick, pose, buffer, packedLight);
     }
 
-    /**
-     * 飛翔中: 非常に鋭利な多重刃
-     */
     private void renderFlying(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
         float alpha = 0.9f;
         draw3DGear(vc, mat, 1.0f, 0.15f, 20, 0.4f, 1.0f, 0.4f, 0.0f, alpha);
@@ -63,9 +55,6 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
         pose.popPose();
     }
 
-    /**
-     * 待機中: 複数の重厚な金色のギアが互い違いに回転
-     */
     private void renderWaiting(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
         float pulse = 0.6f + Mth.sin(timer * 0.15f) * 0.4f;
         pose.pushPose();
@@ -84,9 +73,6 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
         pose.popPose();
     }
 
-    /**
-     * バウンド中: 衝撃で膨張し、白熱する重厚なギア
-     */
     private void renderBouncing(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
         float scale = 1.0f + Mth.sin(timer * 0.4f) * 0.2f;
         float whiten = 0.5f + Mth.sin(timer * 0.4f) * 0.5f;

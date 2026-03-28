@@ -2,6 +2,8 @@ package com.maxwell.tutm.client.shader;
 
 import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
+import com.maxwell.tutm.common.logic.BossTimeMode;
+import com.maxwell.tutm.common.logic.ClientTimeData;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.mixin.PostChainAccessor;
 import net.minecraft.client.Minecraft;
@@ -48,8 +50,10 @@ public class BossDistortionManager {
             targetIntensity = currentIntensity;
         }
         currentIntensity = currentIntensity + (targetIntensity - currentIntensity) * 0.1F;
-        boolean isOtherShaderWorking = TimeManager.isTimeStopped() || TimeManager.isRewinding() || TimeManager.getAccelerationFactor(mc.player) > 1;
-        boolean shouldEffectBeVisible = currentIntensity > 0.01F && !isOtherShaderWorking;
+        boolean isOtherShaderWorking = TimeManager.isTimeStopped() ||
+                TimeManager.isRewinding() ||
+                (TimeManager.getPlayerAccelerationFactor(mc.player) > 1) ||
+                (ClientTimeData.bMode != BossTimeMode.NORMAL);      boolean shouldEffectBeVisible = currentIntensity > 0.01F && !isOtherShaderWorking;
         if (shouldEffectBeVisible) {
             if (mc.gameRenderer.currentEffect() == null || !isOurShaderLoaded) {
                 mc.gameRenderer.loadEffect(SHADER_LOCATION);

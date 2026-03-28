@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
@@ -40,7 +42,16 @@ public class EntityHelper {
             } else {
                 INSTABILITY_COUNT.put(uuid, 0);
             }
+        } else {
+            AttributeInstance maxHealth = target.getAttribute(Attributes.MAX_HEALTH);
+            if (maxHealth != null) {
+                maxHealth.setBaseValue(maxHealth.getValue() - amount);
+                target.level().broadcastEntityEvent(target, (byte) 2);
+            }
+            float currentDebt = target.getPersistentData().getFloat("TimeDebt");
+            target.getPersistentData().putFloat("TimeDebt", currentDebt + amount);
         }
+        target.level().broadcastEntityEvent(target, (byte) 2);
     }
 
     private static void executeTimelineCorrection(ServerPlayer player) {

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:gold_block"
+    },
+    "Y": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "X": {
+      "item": "tutm:chrono_tank2"
+    },
+    "Z": {
+      "item": "minecraft:glass"
+    },
+    "A": {
+      "item": "tutm:infinite_time_clock"
+    }
+  },
+  "pattern": [
+    "Y#Y",
+    "#XZ",
+    "YZA"
+  ],
+  "result": {
+    "item": "tutm:chrono_tank3"
+  },
+  "show_notification": true
+}

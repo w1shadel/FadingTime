@@ -2,20 +2,37 @@ package com.maxwell.tutm.common.events;
 
 import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
+import com.maxwell.tutm.common.logic.BossTimeManager;
+import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.world.TUTMDimensions;
 import com.maxwell.tutm.init.ModEntities;
-import com.maxwell.tutm.init.ModSounds;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = TUTM.MODID)
 public class BossIntroManager {
     private static boolean bossSpawned = false;
+
+    @SubscribeEvent
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+        if (event.getTo() == TUTMDimensions.TIME_REALM_LEVEL_KEY) {
+            ServerLevel level = (ServerLevel) event.getEntity().level();
+            AABB checkArea = new AABB(-256, level.getMinBuildHeight(), -256, 256, level.getMaxBuildHeight(), 256);
+            List<The_Ultimate_TimeManagerEntity> bosses = level.getEntitiesOfClass(The_Ultimate_TimeManagerEntity.class, checkArea);
+            bossSpawned = !bosses.isEmpty();
+        }
+    }
 
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -32,12 +49,15 @@ public class BossIntroManager {
 
     private static void spawnBossWithCeremony(ServerLevel level, ServerPlayer player) {
         TimeManager.forceNormalize();
-        TimeManager.startBossTimeStop(level, 60);
+        BossTimeManager.requestBossMode(level, BossTimeMode.ABSOLUTE_STOP, 120, 1);
+        Component bossName = Component.translatable("entity.tutm.the_ultimate_time_manager").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+        Component introMessage = Component.translatable("chat.tutm.message.one").withStyle(ChatFormatting.WHITE);
+        Component finalMessage = Component.empty().append(bossName).append(introMessage);
+        for (ServerPlayer sp : level.players()) {
+            sp.sendSystemMessage(finalMessage);
+        }
         The_Ultimate_TimeManagerEntity boss = new The_Ultimate_TimeManagerEntity(ModEntities.get(The_Ultimate_TimeManagerEntity.class), level);
-        level.addFreshEntity(boss);
         boss.moveTo(0.5, 70.0, 0.5, 180, 0);
-        boss.setInvulnerable(true);
-        boss.setNoAi(true);
-        level.playSound(null, 0, 70, 0, ModSounds.TIME_STOP.get(), SoundSource.HOSTILE, 1.0f, 0.5f);
+        level.addFreshEntity(boss);
     }
 }

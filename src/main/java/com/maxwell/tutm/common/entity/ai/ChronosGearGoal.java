@@ -7,11 +7,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
-/**
- * クロノス・ギアゴール
- * 第一形態: 300tick(15秒)に1回 → 3個召喚
- * 第二形態: 200tick(10秒)に1回 → 5個召喚
- */
 public class ChronosGearGoal extends Goal {
     private final The_Ultimate_TimeManagerEntity boss;
 

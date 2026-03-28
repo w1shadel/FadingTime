@@ -130,7 +130,7 @@ public class TemporalLaserEntity extends Entity {
             for (LivingEntity target : targets) {
                 if (hitInThisTick.contains(target)) continue;
                 if (!(this.owner instanceof The_Ultimate_TimeManagerEntity && target == this.owner)) {
-                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10.0F);
+                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10);
                     hitInThisTick.add(target);
                 }
             }

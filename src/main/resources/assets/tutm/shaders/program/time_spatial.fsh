@@ -90,6 +90,34 @@ void main() {
 
         finalOutput = vec4(color, 1.0);
 
+    } else if (Mode == 4.0) {
+        // === 絶対停止エフェクト (ABSOLUTE TIME STOP - BOSS ONLY) ===
+        // 1. 画面の色を反転 (ネガティブ)
+        vec4 col = texture(DiffuseSampler, texCoord);
+        vec3 inverted = 1.0 - col.rgb;
+
+        // 2. 禍々しい赤と黒の色調へ補正
+        float luma = dot(inverted, vec3(0.299, 0.587, 0.114));
+        vec3 bloodColor = vec3(luma * 1.5, luma * 0.2, luma * 0.1); // 赤みを強調
+        vec3 color = mix(inverted, bloodColor, 0.5);
+
+        // 3. 空間の亀裂のようなノイズ (時間軸の崩壊表現)
+        float noise = sin(texCoord.y * 800.0 + Time * 30.0) * 0.01;
+        float glitch = step(0.98, sin(Time * 2.0 + texCoord.y * 10.0)) * 0.02; // たまに横にズレる
+        vec2 distortedCoord = texCoord + vec2(noise + glitch, 0.0);
+
+        // 再サンプリングして色の反転を維持
+        color = 1.0 - texture(DiffuseSampler, distortedCoord).rgb;
+
+        // 4. ハイコントラスト化
+        color = (color - 0.5) * 1.8 + 0.5;
+
+        // 5. 周辺を暗い赤で覆う (絶望的なビネット)
+        float vignette = smoothstep(1.1, 0.4, dist);
+        color *= mix(vec3(0.1, 0.0, 0.0), vec3(1.0), vignette);
+
+        finalOutput = vec4(color, 1.0);
+
     } else {
         // 通常時
         finalOutput = texture(DiffuseSampler, texCoord);

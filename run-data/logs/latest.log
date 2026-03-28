@@ -1,0 +1,64 @@
+[283月2026 11:38:50.524] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, C:\Users\stard_i5grhqf\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, tutm, --all, --output, C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\src\generated\resources, --existing, C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\src\main\resources, --mixin.config, tutm.mixins.json]
+[283月2026 11:38:50.528] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.17 by Microsoft; OS Windows 11 arch amd64 version 10.0
+[283月2026 11:38:50.632] [main/WARN] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Configuration file C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\run-data\config\fml.toml is not correct. Correcting
+[283月2026 11:38:50.632] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSkipGLVersions] was corrected from null to []
+[283月2026 11:38:50.634] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowLogHelpMessage] was corrected from null to true
+[283月2026 11:38:50.634] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSquir] was corrected from null to false
+[283月2026 11:38:50.634] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowShowCPU] was corrected from null to false
+[283月2026 11:38:50.648] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
+[283月2026 11:38:50.697] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/stard_i5grhqf/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
+[283月2026 11:38:50.967] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\stard_i5grhqf\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.0\f0c0b352173d0a378cbdcec9cfc4ba65899a721\javafmllanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[283月2026 11:38:50.972] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\stard_i5grhqf\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.0\e862740d8c84d08dbfedea412bef88fe42e727c5\lowcodelanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[283月2026 11:38:50.977] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\stard_i5grhqf\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.0\5719b3a297a33f877ed5dde4cb4bd75c859096af\mclanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[283月2026 11:38:50.983] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\stard_i5grhqf\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.0\235975dafa4309945b59c56b53f31dc5b65a6051\fmlcore-1.20.1-47.4.0.jar is missing mods.toml file
+[283月2026 11:38:51.350] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 3 dependencies adding them to mods collection
+[283月2026 11:38:52.953] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[283月2026 11:38:52.981] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, C:\Users\stard_i5grhqf\.gradle\caches\forge_gradle\assets, --assetIndex, 5, --mod, tutm, --all, --output, C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\src\generated\resources, --existing, C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\src\main\resources]
+[283月2026 11:38:53.053] [main/WARN] [mixin/]: Reference map 'tutm.refmap.json' for tutm.mixins.json could not be read. If this is a development environment you can ignore this message
+[283月2026 11:38:53.374] [main/INFO] [mixin/]: Remapping refMap the_trial_monolith.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.376] [main/INFO] [mixin/]: Remapping refMap getittogetherdrops.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.379] [main/INFO] [mixin/]: Remapping refMap jade.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.380] [main/INFO] [mixin/]: Remapping refMap fdlib.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.386] [main/INFO] [mixin/]: Remapping refMap player-animation-lib-minecraft_common-refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.413] [main/INFO] [mixin/]: Remapping refMap ending_library.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:53.415] [main/INFO] [mixin/]: Remapping refMap curios.refmap.json using C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\build\createSrgToMcp\output.srg
+[283月2026 11:38:54.277] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.0).
+[283月2026 11:38:54.704] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [tutm]
+[283月2026 11:39:00.663] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file C:\Users\stard_i5grhqf\Documents\GitHub\SimpleBossMod\run-data\config\appleskin-client.toml is not correct. Correcting
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client was corrected from null to its default, SimpleCommentedConfig:{}. 
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodValuesInTooltip was corrected from null to its default, true. 
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodValuesInTooltipAlways was corrected from null to its default, true. 
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showSaturationHudOverlay was corrected from null to its default, true. 
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodValuesHudOverlay was corrected from null to its default, true. 
+[283月2026 11:39:00.664] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodValuesHudOverlayWhenOffhand was corrected from null to its default, true. 
+[283月2026 11:39:00.665] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodExhaustionHudUnderlay was corrected from null to its default, true. 
+[283月2026 11:39:00.665] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodStatsInDebugOverlay was corrected from null to its default, true. 
+[283月2026 11:39:00.665] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showFoodHealthHudOverlay was corrected from null to its default, true. 
+[283月2026 11:39:00.665] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.showVanillaAnimationsOverlay was corrected from null to its default, true. 
+[283月2026 11:39:00.665] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key client.maxHudOverlayFlashAlpha was corrected from null to its default, 0.65. 
+[283月2026 11:39:00.752] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.0, for MC 1.20.1 with MCP 20230612.114412
+[283月2026 11:39:00.753] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.0 Initialized
+[283月2026 11:39:01.102] [modloading-worker-0/ERROR] [net.minecraftforge.fml.javafmlmod.FMLModContainer/LOADING]: Failed to create mod instance. ModID: ending_library, class com.mega.endinglib.EndingLibrary
+java.lang.ExceptionInInitializerError: null
+	at jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45) ~[?:?]
+	at java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500) ~[?:?]
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:481) ~[?:?]
+	at net.minecraftforge.fml.javafmlmod.FMLModContainer.constructMod(FMLModContainer.java:77) ~[javafmllanguage-1.20.1-47.4.0.jar%23192!/:?]
+	at net.minecraftforge.fml.ModContainer.lambda$buildTransitionHandler$5(ModContainer.java:126) ~[fmlcore-1.20.1-47.4.0.jar%23195!/:?]
+	at java.util.concurrent.CompletableFuture$AsyncRun.run(CompletableFuture.java:1804) ~[?:?]
+	at java.util.concurrent.CompletableFuture$AsyncRun.exec(CompletableFuture.java:1796) ~[?:?]
+	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373) ~[?:?]
+	at java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1182) ~[?:?]
+	at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1655) ~[?:?]
+	at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1622) ~[?:?]
+	at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:165) ~[?:?]
+Caused by: java.lang.NullPointerException: Cannot invoke "net.minecraft.client.Minecraft.getResourceManager()" because the return value of "net.minecraft.client.Minecraft.getInstance()" is null
+	at com.mega.endinglib.proxy.ClientProxy.<init>(ClientProxy.java:52) ~[EndingLibrary-2.1.11_mapped_parchment_2023.09.03-1.20.1.jar%23208!/:2.1.11]
+	at net.minecraftforge.fml.DistExecutor.safeRunForDist(DistExecutor.java:187) ~[fmlcore-1.20.1-47.4.0.jar%23195!/:?]
+	at com.mega.endinglib.EndingLibrary.<clinit>(EndingLibrary.java:31) ~[EndingLibrary-2.1.11_mapped_parchment_2023.09.03-1.20.1.jar%23208!/:2.1.11]
+	... 14 more
+[283月2026 11:39:01.400] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
+[283月2026 11:39:01.403] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 2.011 ms
+[283月2026 11:39:01.434] [main/FATAL] [net.minecraftforge.fml.ModLoader/LOADING]: Failed to complete lifecycle event CONSTRUCT, 1 errors found

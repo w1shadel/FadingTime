@@ -1,11 +1,9 @@
 package com.maxwell.tutm.common.logic;
 
 import com.maxwell.tutm.common.capability.TimeDataCapability;
-import com.maxwell.tutm.common.entity.TemporalLaserEntity;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.network.S2CSyncTimePacket;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
-import com.maxwell.tutm.common.util.CurioHelper;
 import com.maxwell.tutm.init.ModItems;
 import com.maxwell.tutm.init.ModSounds;
 import com.maxwell.tutm.mixin.ChunkMapAccessor;
@@ -17,105 +15,136 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TimeManager {
     private static final Map<UUID, Deque<EntityState>> HISTORY = new ConcurrentHashMap<>();
-    private static boolean serverTimeStopped = false;
-    private static boolean serverRewinding = false;
-    private static int serverAccelFactor = 1;
-    private static int bossTimeStopTicks = 0;
-    private static boolean clientTimeStopped = false;
-    private static boolean clientRewinding = false;
-    private static int clientAccelFactor = 1;
+    private static PlayerTimeMode currentMode = PlayerTimeMode.NORMAL;
+    private static int activeTicks = 0;
+    private static int playerAccelFactor = 1;
+    public static PlayerTimeMode getCurrentMode() { return currentMode; }
+    public static boolean isTimeStopped() { return currentMode == PlayerTimeMode.STOPPED; }
+    public static boolean isRewinding() { return currentMode == PlayerTimeMode.REWINDING; }
 
-    public static boolean isTimeStopped() {
-        return EffectiveSide.get().isClient() ? clientTimeStopped : serverTimeStopped;
-    }
-
-    public static boolean isRewinding() {
-        return EffectiveSide.get().isClient() ? clientRewinding : serverRewinding;
-    }
-
-    public static int getAccelerationFactor(Entity e) {
-        if (!isImmune(e)) return 1;
-        return EffectiveSide.get().isClient() ? clientAccelFactor : serverAccelFactor;
-    }
-
-    public static void setAccelerationFactor(Player player, int factor) {
-        if (!player.level().isClientSide) {
-            serverAccelFactor = factor;
-        }
-    }
-
-    /**
-     * サーバー側の全プレイヤーティック更新
-     */
     public static void serverTick(ServerPlayer player) {
         player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
-            data.tier = CurioHelper.getEquippedTankTier(player);
-            if (data.tier > 0) {
-                if (serverTimeStopped || serverRewinding || serverAccelFactor > 1) {
-                    double cost = (serverTimeStopped ? 20 : 0) + (serverRewinding ? 50 : 0) + Math.pow(serverAccelFactor, 1.5);
-                    data.currentCost = Math.max(0, data.currentCost - cost);
-                    if (data.currentCost <= 0) forceNormalize();
+            if (currentMode != PlayerTimeMode.NORMAL) {
+                data.currentCost = Math.max(0, data.currentCost - calculateCost(currentMode));
+                if (data.currentCost <= 0 || activeTicks <= 0) {
+                    forceNormalize();
                 } else {
-                    data.currentCost = Math.min(data.getMaxCost(), data.currentCost + 5000);
+                    activeTicks--;
                 }
             } else {
-                data.currentCost = 0;
-                if (serverTimeStopped || serverRewinding) forceNormalize();
+                data.currentCost = Math.min(data.getMaxCost(), data.currentCost + 5000);
             }
             TUTMPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-                    new S2CSyncTimePacket(data.currentCost, data.getMaxCost(), data.tier, serverTimeStopped, serverAccelFactor, serverRewinding));
+                    new S2CSyncTimePacket(
+                            data.currentCost,
+                            data.getMaxCost(),
+                            data.tier,
+                            currentMode,              // プレイヤーモード
+                            BossTimeManager.getMode(), // ボスモード
+                            BossTimeManager.getAccelFactor() // ボス加速倍率
+                    ));
         });
     }
 
-    /**
-     * ボスやデバッグ用の時間停止開始
-     */
-    public static void startBossTimeStop(ServerLevel level, int duration) {
-        serverTimeStopped = true;
-        bossTimeStopTicks = duration;
-        level.playSound(null, 0, 60, 0, ModSounds.TIME_STOP.get(), SoundSource.HOSTILE, 1.0f, 1.0f);
+    public static void onEntityRemoved(UUID uuid) {
+        HISTORY.remove(uuid);
     }
-
-    /**
-     * ボス加速のセット
-     */
-    public static void setBossAcceleration(int factor) {
-        serverAccelFactor = factor;
+    public static void clearAllHistory() {
+        HISTORY.clear();
     }
-
+    public static void requestMode(ServerPlayer player, PlayerTimeMode targetMode, int duration, int factor) {
+        player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
+            if (data.tier < targetMode.minTier) return;
+            currentMode = targetMode;
+            activeTicks = duration;
+            playerAccelFactor = factor;
+            playModeSound(player, targetMode);
+        });
+    }
+    public static void requestMode(ServerPlayer player, PlayerTimeMode targetMode, int duration) {
+        requestMode(player, targetMode, duration, 1);
+    }
     public static void forceNormalize() {
-        serverTimeStopped = false;
-        serverRewinding = false;
-        serverAccelFactor = 1;
-        bossTimeStopTicks = 0;
+        currentMode = PlayerTimeMode.NORMAL;
+        activeTicks = 0;
     }
 
-    public static void setClientState(boolean stopped, int accel, boolean rewind) {
-        clientTimeStopped = stopped;
-        clientAccelFactor = accel;
-        clientRewinding = rewind;
+    private static double calculateCost(PlayerTimeMode mode) {
+        return switch (mode) {
+            case ACCELERATING -> 1.5;
+            case STOPPED -> 20.0;
+            case REWINDING -> 50.0;
+            default -> 0.0;
+        };
     }
 
+    private static void playModeSound(ServerPlayer player, PlayerTimeMode mode) {
+        var sound = (mode == PlayerTimeMode.NORMAL) ? ModSounds.TIME_END_ACCELERATION.get() :
+                (mode == PlayerTimeMode.STOPPED) ? ModSounds.TIME_STOP.get() :
+                        (mode == PlayerTimeMode.REWINDING) ? ModSounds.REWIND.get() : ModSounds.TIME_ACCELERATION.get();
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, 0.5f, 1.0f);
+    }
+    public static void tickImmuneEntitiesOnly(ServerLevel level) {
+
+        var entityMap = ((ChunkMapAccessor) level.getChunkSource().chunkMap).getEntityMap();
+        ((ServerLevelAccessor) level).getEntityTickList().forEach(entity -> {
+            if (entity.isRemoved()) return;
+            if (isImmune(entity)) {
+                level.guardEntityTick(level::tickNonPassenger, entity);
+                Object tracked = entityMap.get(entity.getId());
+                if (tracked != null) {
+                    ((TrackedEntityAccessor) tracked).getServerEntity().sendChanges();
+                }
+            } else {
+                entity.setPos(entity.xo, entity.yo, entity.zo);
+                entity.setDeltaMovement(0, 0, 0);
+            }
+        });
+    }
+    public static int getPlayerAccelerationFactor(Entity e) {
+        return (currentMode == PlayerTimeMode.ACCELERATING) ? playerAccelFactor : 1;
+    }
+
+    public static boolean isImmune(Entity entity) {
+        if (entity == null) return false;
+        if (entity instanceof The_Ultimate_TimeManagerEntity) return true;
+        if (entity instanceof Player p) {
+            if (p.isCreative() || p.isSpectator() || p.getMainHandItem().getItem() == ModItems.DEBUG.get()) return true;
+            return p.getCapability(TimeDataCapability.INSTANCE).map(data -> {
+                if (isTimeStopped()) return data.tier >= 2 && data.currentCost > 0;
+                return data.currentCost > 0;
+            }).orElse(false);
+        }
+        return false;
+    }
     public static void recordState(Entity entity) {
+        if (entity.level().isClientSide) return;
         if (isTimeStopped() || isRewinding()) return;
         Deque<EntityState> states = HISTORY.computeIfAbsent(entity.getUUID(), k -> new ArrayDeque<>());
-        states.addFirst(new EntityState(entity.position(), entity.getDeltaMovement(), entity.getYRot(), entity.getXRot(),
-                (entity instanceof LivingEntity le) ? le.getHealth() : 0, (entity instanceof LivingEntity le) ? le.getAbsorptionAmount() : 0,
-                entity.getRemainingFireTicks(), entity.getAirSupply(), entity.fallDistance));
-        if (states.size() > 400) states.removeLast();
+        synchronized (states) {
+            states.addFirst(new EntityState(
+                    entity.position(),
+                    entity.getDeltaMovement(),
+                    entity.getYRot(),
+                    entity.getXRot(),
+                    (entity instanceof LivingEntity le) ? le.getHealth() : 0,
+                    (entity instanceof LivingEntity le) ? le.getAbsorptionAmount() : 0,
+                    entity.getRemainingFireTicks(),
+                    entity.getAirSupply(),
+                    entity.fallDistance
+            ));
+            while (states.size() > 400) {
+                states.removeLast();
+            }
+        }
     }
-
     public static EntityState popState(Entity entity) {
         Deque<EntityState> states = HISTORY.get(entity.getUUID());
         if (states == null || states.isEmpty()) return null;
@@ -123,7 +152,6 @@ public class TimeManager {
             return states.pollFirst();
         }
     }
-
     public static void applyState(Entity entity, EntityState state) {
         if (state == null) return;
         entity.setDeltaMovement(state.delta());
@@ -142,66 +170,4 @@ public class TimeManager {
         entity.xRotO = entity.getXRot();
     }
 
-    /**
-     * 逆行実行：Mixinから呼ばれる
-     */
-    public static void handleRewindTick(ServerLevel level) {
-        ((ServerLevelAccessor) level).getEntityTickList().forEach(entity -> {
-            EntityState state = popState(entity);
-            if (state != null) {
-                applyState(entity, state);
-            } else if (entity instanceof Player) {
-                forceNormalize();
-            }
-        });
-    }
-
-    /**
-     * 時間停止中のティック処理：Mixinから呼ばれる
-     */
-    public static void tickImmuneEntitiesOnly(ServerLevel level) {
-        if (bossTimeStopTicks > 0) {
-            bossTimeStopTicks--;
-            if (bossTimeStopTicks <= 0) {
-                serverTimeStopped = false;
-                level.playSound(null, 0, 60, 0, ModSounds.TIME_START.get(), SoundSource.HOSTILE, 1.0f, 1.0f);
-            }
-        }
-        var entityMap = ((ChunkMapAccessor) level.getChunkSource().chunkMap).getEntityMap();
-        ((ServerLevelAccessor) level).getEntityTickList().forEach(entity -> {
-            if (entity.isRemoved()) return;
-            if (isImmune(entity)) {
-                level.guardEntityTick(level::tickNonPassenger, entity);
-                Object tracked = entityMap.get(entity.getId());
-                if (tracked != null) {
-                    ((TrackedEntityAccessor) tracked).getServerEntity().sendChanges();
-                }
-            } else {
-                entity.setPos(entity.xo, entity.yo, entity.zo);
-                entity.setDeltaMovement(0, 0, 0);
-            }
-        });
-    }
-
-    public static boolean isImmune(Entity entity) {
-        if (entity == null) return false;
-        if (entity instanceof The_Ultimate_TimeManagerEntity) return true;
-        if (entity instanceof TemporalLaserEntity) return false;
-        if (entity instanceof Player p) {
-            if (p.isCreative() || p.isSpectator() || p.getMainHandItem().getItem() == ModItems.DEBUG.get()) return true;
-            return p.getCapability(TimeDataCapability.INSTANCE).map(data -> {
-                if (isTimeStopped()) return data.tier >= 2 && data.currentCost > 0;
-                return data.currentCost > 0;
-            }).orElse(false);
-        }
-        return false;
-    }
-
-    public static void requestStop(Player p) {
-        if (!p.level().isClientSide) serverTimeStopped = !serverTimeStopped;
-    }
-
-    public static void requestRewind(Player p) {
-        if (!p.level().isClientSide) serverRewinding = !serverRewinding;
-    }
 }

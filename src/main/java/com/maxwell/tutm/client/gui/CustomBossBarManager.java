@@ -8,12 +8,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @SuppressWarnings("removal")
-@Mod.EventBusSubscriber(modid = TUTM.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = net.minecraftforge.api.distmarker.Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = TUTM.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class CustomBossBarManager {
     private static final ResourceLocation BOSS_BAR_TEXTURE = new ResourceLocation(TUTM.MODID, "textures/gui/tutm_health.png");
     private static final ResourceLocation BOSS_BAR_TEXTURE_UNDERHP = new ResourceLocation(TUTM.MODID, "textures/gui/tutm_health_under.png");

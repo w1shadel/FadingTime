@@ -1,8 +1,13 @@
 package com.maxwell.tutm.mixin;
 
+import com.maxwell.tutm.common.logic.BossTimeManager;
+import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.logic.EntityState;
 import com.maxwell.tutm.common.logic.TimeManager;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,46 +18,94 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Consumer;
 
-@Mixin(Level.class)
+@Mixin(value = Level.class)
 public abstract class LevelTimeManagerMixin {
     @Unique
     private static boolean tutm$isProcessing = false;
 
     @Inject(method = "guardEntityTick", at = @At("HEAD"), cancellable = true)
-    private <T extends Entity> void tutm$manageFlow(Consumer<T> consumer, T entity, CallbackInfo ci) {
+    private void tutm$manageFlow(Consumer<Entity> consumer, Entity entity, CallbackInfo ci) {
         if (tutm$isProcessing) return;
-        if (TimeManager.isTimeStopped() && !TimeManager.isImmune(entity)) {
-            if (entity.tickCount > 0) {
-                entity.setPos(entity.xo, entity.yo, entity.zo);
-                entity.setDeltaMovement(0, 0, 0);
-            }
+        boolean isAbsoluteStop = BossTimeManager.getMode() == BossTimeMode.ABSOLUTE_STOP;
+        boolean isServer = !entity.level().isClientSide();
+        boolean isImmune = !isAbsoluteStop && TimeManager.isImmune(entity);
+        boolean isTimeStopped = TimeManager.isTimeStopped() || BossTimeManager.isTimeStopped();
+        int factor = BossTimeManager.getMode() == BossTimeMode.ACCELERATING
+                ? BossTimeManager.getAccelFactor()
+                : TimeManager.getPlayerAccelerationFactor(entity);
+        if (isTimeStopped && !isImmune) {
+            entity.setPos(entity.xo, entity.yo, entity.zo);
+            entity.setDeltaMovement(0, 0, 0);
             ci.cancel();
             return;
         }
         if (TimeManager.isRewinding()) {
-            EntityState s = TimeManager.popState(entity);
-            if (s != null) {
-                entity.absMoveTo(s.pos().x, s.pos().y, s.pos().z, s.yRot(), s.xRot());
-                entity.setDeltaMovement(0, 0, 0);
+            if (!isImmune || entity instanceof Player) {
+                if (isServer) {
+                    EntityState s = TimeManager.popState(entity);
+                    if (s != null) {
+                        TimeManager.applyState(entity, s);
+                        if (entity instanceof ServerPlayer sp) {
+                            sp.connection.teleport(s.pos().x, s.pos().y, s.pos().z, s.yRot(), s.xRot());
+                        } else if (entity.level() instanceof ServerLevel sl) {
+                            var entityMap = ((ChunkMapAccessor) sl.getChunkSource().chunkMap).getEntityMap();
+                            Object tracked = entityMap.get(entity.getId());
+                            if (tracked != null) {
+                                ((TrackedEntityAccessor) tracked).getServerEntity().sendChanges();
+                            }
+                        }
+                    } else if (entity instanceof Player) {
+                        TimeManager.forceNormalize();
+                    }
+                }
                 ci.cancel();
                 return;
-            } else if (entity instanceof Player) {
-                TimeManager.forceNormalize();
             }
         }
-        TimeManager.recordState(entity);
-        int factor = (TimeManager.isImmune(entity)) ? TimeManager.getAccelerationFactor(entity) : 1;
         if (factor > 1) {
-            tutm$isProcessing = true;
-            for (int i = 0; i < factor - 1; i++) {
-                entity.xo = entity.getX();
-                entity.yo = entity.getY();
-                entity.zo = entity.getZ();
-                entity.yRotO = entity.getYRot();
-                entity.xRotO = entity.getXRot();
-                consumer.accept(entity);
+            if (isImmune) {
+                tutm$isProcessing = true;
+                for (int i = 0; i < factor - 1; i++) {
+                    entity.xo = entity.getX();
+                    entity.yo = entity.getY();
+                    entity.zo = entity.getZ();
+                    entity.yRotO = entity.getYRot();
+                    entity.xRotO = entity.getXRot();
+                    consumer.accept(entity);
+                }
+                tutm$isProcessing = false;
             }
-            tutm$isProcessing = false;
+        }
+        if (isServer) {
+            tutm$internalCollectDebt(entity);
+            TimeManager.recordState(entity);
+        }
+    }
+
+    @Inject(method = "guardEntityTick", at = @At("TAIL"))
+    private void tutm$collectDebtAfter(Consumer<Entity> consumer, Entity entity, CallbackInfo ci) {
+        if (!entity.level().isClientSide()) {
+            tutm$internalCollectDebt(entity);
+        }
+    }
+
+    @Unique
+    private void tutm$internalCollectDebt(Entity entity) {
+        if (entity instanceof LivingEntity living && living.getPersistentData().contains("TimeDebt")) {
+            float debt = living.getPersistentData().getFloat("TimeDebt");
+            if (debt > 0) {
+                float newHealth = living.getHealth() - debt;
+                try {
+                    var healthId = LivingEntityAccessor.getHealthDataId();
+                    living.getEntityData().set(healthId, newHealth);
+                } catch (Exception e) {
+                    living.setHealth(newHealth);
+                }
+                if (newHealth <= 0) {
+                    living.setRemoved(Entity.RemovalReason.KILLED);
+                }
+                living.getPersistentData().remove("TimeDebt");
+            }
         }
     }
 }

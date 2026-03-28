@@ -11,11 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
-/**
- * ディバインウェーブのレンダラー
- * 拡張する薄白い球殻をワイヤーフレーム状の複数の円弧で表現する
- * エンティティは原点固定なので、radius分だけ座標変換して描画する
- */
 @SuppressWarnings("removal")
 public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
     public DivineWaveRenderer(EntityRendererProvider.Context context) {
@@ -56,9 +51,6 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
         }
     }
 
-    /**
-     * 水平リング（XZ面）を y オフセットで描画
-     */
     private void drawRing(VertexConsumer vc, Matrix4f mat,
                           float ringRadius, float yOffset,
                           int segments, float thickness,
@@ -87,9 +79,6 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
         }
     }
 
-    /**
-     * 任意の傾きを持つリング（縦方向の球の経線表現）
-     */
     private void drawTiltedRing(VertexConsumer vc, Matrix4f mat,
                                 float radius, int segments, float thickness,
                                 float tiltAngle,

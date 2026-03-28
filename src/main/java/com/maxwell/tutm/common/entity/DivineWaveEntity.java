@@ -24,12 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * ディバインウェーブエンティティ
- * ボスを中心に球形の衝撃波が最大半径60ブロックまで拡張する
- * 衝撃波に当たると: 回復阻害 + 時間障害 + 4ダメージ
- * デバフ持続: 10〜17秒（200〜340tick）でランダム
- */
 @AutoRegisterEntity(
         name = "divine_wave",
         width = 1.0f,
@@ -67,9 +61,6 @@ public class DivineWaveEntity extends Entity {
         return this.entityData.get(AGE);
     }
 
-    /**
-     * 現在の半径（0〜MAX_RADIUS）をクライアント含む全体で参照するために公開
-     */
     public float getCurrentRadius() {
         int age = getWaveAge();
         if (age >= EXPAND_TICKS) return MAX_RADIUS;

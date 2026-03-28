@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:copper_ingot"
+    },
+    "Y": {
+      "item": "minecraft:copper_block"
+    },
+    "X": {
+      "item": "minecraft:redstone"
+    },
+    "Z": {
+      "item": "minecraft:glass"
+    },
+    "A": {
+      "item": "tutm:time_sand_dust"
+    }
+  },
+  "pattern": [
+    "Y#Y",
+    "#XZ",
+    "YZA"
+  ],
+  "result": {
+    "item": "tutm:chrono_tank1"
+  },
+  "show_notification": true
+}

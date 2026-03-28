@@ -3,5 +3,14 @@
   "item.tutm.chrono_tank1": "クロノ・タンク Mk1",
   "item.tutm.chrono_tank2": "クロノ・タンク Mk2",
   "item.tutm.chrono_tank3": "クロノ・タンク Mk3",
-  "curios.identifier.chrono_tank": "クロノ・タンク"
+  "curios.identifier.chrono_tank": "クロノ・タンク",
+  "entity.tutm.the_ultimate_time_manager": "The Ultimate Time Manager",
+  "entity.tutm.the_ultimate_time_manager.phase2": "The Fading Time Manager",
+  "chat.tutm.message.one": "：「あら、どうやってここに...」",
+  "item.tutm.time_sand": "時間と砂",
+  "item.tutm.time_sand_dust": "怪しげな砂の一握り",
+  "item.tutm.infinite_time_clock": "時間の長針、空間の短針",
+  "item.tutm.time_sand_dust.desc": "時の込められた小さな砂、未だに奈落に落ちようとしている。",
+  "item.tutm.time_sand.desc": "更に多くの時を込められた砂、それでも大きな力の一部分にすぎない。",
+  "item.tutm.infinite_time_clock.desc": "時の管理者が操る権能の一つが込められた大きな力。"
 }
