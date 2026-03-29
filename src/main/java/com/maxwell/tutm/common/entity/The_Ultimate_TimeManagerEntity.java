@@ -38,7 +38,7 @@ import java.util.UUID;
 @AutoRegisterEntity(
         name = "the_ultimate_time_manager",
         width = 0.6f, height = 2.2f,
-        renderer = The_Ultimate_Time_ManagerRenderer.class
+        renderer = "com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer"
 )
 public class The_Ultimate_TimeManagerEntity extends Monster {
     private static final EntityDataAccessor<Boolean> IS_ALLY = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -52,7 +52,16 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private int teleportCooldown = 0;
     private int divineWaveCooldown = 0;
     private int timeStopCooldown = 200;
+    private long lastManualTick = -1L;
 
+    public void forceTick() {
+        long currentTick = this.level().getGameTime();
+        if (this.lastManualTick == currentTick) return;
+        this.lastManualTick = currentTick;
+        if (!this.isRemoved()) {
+            this.tick();
+        }
+    }
     public The_Ultimate_TimeManagerEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.lastHealth = -1.0F;
@@ -94,7 +103,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                         200,
                         1
                 );
-                timeStopCooldown = 400;
+                timeStopCooldown = 600;
             }
         }
         if (this.getTarget() == null || !this.getTarget().isAlive()) {
@@ -203,7 +212,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         super.die(cause);
         if (!this.level().isClientSide) {
             broadcastBossBarPacket(false);
-
         }
     }
 
@@ -211,6 +219,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
         super.dropCustomDeathLoot(source, looting, recentlyHit);
         this.spawnAtLocation(new ItemStack(ModItems.INFINITE_TIME_CLOCK.get()));
+        this.spawnAtLocation(new ItemStack(ModItems.LUNAR_CHRONO_CLOCK.get()));
     }
 
     private void sendBossBarPacket(ServerPlayer player, boolean shouldDisplay) {
@@ -253,13 +262,27 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     }
     private void handleFlightMovement(LivingEntity target) {
         orbitAngle += isSecondForm() ? 0.08 : 0.04;
+
         double radius = 8.0 + Math.sin(this.tickCount * 0.05) * 4.0;
         double targetX = target.getX() + Math.cos(orbitAngle) * radius;
         double targetZ = target.getZ() + Math.sin(orbitAngle) * radius;
         double targetY = target.getY() + 6.0 + Math.sin(this.tickCount * 0.1) * 2.0;
+
+        double speed = isSecondForm() ? 0.25 : 0.15;
+
+        double heightDifference = this.getY() - target.getY();
+        if (heightDifference > 12.0) {
+            targetY = target.getY() + 2.0;
+            double evasionRadius = radius + Math.sin(this.tickCount * 0.4) * 6.0;
+            double evasionAngle = orbitAngle + Math.cos(this.tickCount * 0.3) * 2.0;
+
+            targetX = target.getX() + Math.cos(evasionAngle) * evasionRadius;
+            targetZ = target.getZ() + Math.sin(evasionAngle) * evasionRadius;
+            speed *= 1.8;
+        }
+
         Vec3 targetVec = new Vec3(targetX, targetY, targetZ);
         Vec3 moveVec = targetVec.subtract(this.position());
-        double speed = isSecondForm() ? 0.25 : 0.15;
         this.setDeltaMovement(this.getDeltaMovement().add(moveVec.normalize().scale(speed)));
         this.setDeltaMovement(this.getDeltaMovement().multiply(0.8, 0.8, 0.8));
         this.lookAt(target, 30.0F, 30.0F);
@@ -267,11 +290,11 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         teleportCooldown--;
         if (teleportCooldown <= 0) {
             if (dist > 32.0) {
-                this.moveTo(target.getX(), target.getY() + 10, target.getZ());
+                this.moveTo(target.getX(), target.getY() + 6.0, target.getZ());
                 teleportCooldown = 100;
             } else if (dist < 5.0) {
                 Vec3 behind = target.getLookAngle().reverse().scale(10);
-                this.moveTo(target.getX() + behind.x, target.getY() + 5, target.getZ() + behind.z);
+                this.moveTo(target.getX() + behind.x, target.getY() + 5.0, target.getZ() + behind.z);
                 teleportCooldown = 60;
             }
         }

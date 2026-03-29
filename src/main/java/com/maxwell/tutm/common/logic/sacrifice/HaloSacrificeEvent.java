@@ -31,7 +31,7 @@ public class HaloSacrificeEvent {
                     int phase = (overworld != null) ? overworld.getMoonPhase() : level.getMoonPhase();
                     if (!HaloPartHelper.hasPart(clock, phase)) {
                         HaloPartHelper.collectPart(clock, phase);
-                        player.displayClientMessage(Component.literal("§6時計に新たなパーツが刻み込まれた..."), true);
+                        player.displayClientMessage(Component.translatable("chat.tutm.message.3"), true);
                         serverLevel.sendParticles(ParticleTypes.ENCHANTED_HIT,
                                 event.getEntity().getX(), event.getEntity().getY() + 1.0, event.getEntity().getZ(),
                                 20, 0.5, 0.5, 0.5, 0.1);

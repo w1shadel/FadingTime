@@ -85,24 +85,11 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("curse.maven:spark-361579:4738952")
-    implementation fg.deobf("curse.maven:appleskin-248787:4770828")
-    implementation fg.deobf("curse.maven:construction-wand-399558:4684054")
-    implementation fg.deobf("curse.maven:irons-spells-n-spellbooks-855414:7822862")
-    implementation fg.deobf("curse.maven:irons-patreon-library-1492763:7822858")
-    implementation fg.deobf("curse.maven:geckolib-388172:7553267")
-    implementation fg.deobf("curse.maven:goety-586095:7799190")
-    implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("curse.maven:jade-324717:5672013")
-    implementation fg.deobf("curse.maven:the-trial-monolith-1462850:7728024")
     implementation fg.deobf("curse.maven:curios-309927:6418456")
-    implementation fg.deobf("curse.maven:get-it-together-drops-411045:4578649")
-    implementation fg.deobf("curse.maven:cloth-config-348521:5729105")
-    implementation fg.deobf("curse.maven:jei-integration-265917:4999754")
-    implementation fg.deobf("curse.maven:catalogue-459701:4766090")
-    implementation fg.deobf("maven.modrinth:EndingLibrary:2.1.11")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

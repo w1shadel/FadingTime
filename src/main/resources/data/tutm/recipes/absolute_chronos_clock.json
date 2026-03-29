@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "tutm:chronos_gods_time_frame"
+    },
+    "Y": {
+      "item": "tutm:night_victory_emblem"
+    },
+    "X": {
+      "item": "tutm:fused_soul"
+    },
+    "Z": {
+      "item": "tutm:fake_halo"
+    },
+    "A": {
+      "item": "tutm:lunar_chrono_clock_time"
+    }
+  },
+  "pattern": [
+    " # ",
+    "YAX",
+    " Z "
+  ],
+  "result": {
+    "item": "tutm:absolute_chronos_clock"
+  },
+  "show_notification": true
+}

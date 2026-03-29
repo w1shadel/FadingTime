@@ -29,7 +29,7 @@ import java.util.UUID;
         width = 1.0f,
         height = 1.0f,
         category = MobCategory.MISC,
-        renderer = DivineWaveRenderer.class
+        renderer =  "com.maxwell.tutm.client.renderer.DivineWaveRenderer"
 )
 public class DivineWaveEntity extends Entity {
     public static final int MAX_RADIUS = 60;

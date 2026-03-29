@@ -9,7 +9,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -24,6 +26,8 @@ public class CustomBossBarManager {
     private static Component bossName = Component.empty();
     private static boolean isSecondForm = false;
 
+    private static int currentVanillaBossBarBottomY = 12;
+
     public static void handleUpdatePacket(UpdateBossBarPacket packet) {
         shouldDisplay = packet.shouldDisplay();
         if (shouldDisplay) {
@@ -35,8 +39,27 @@ public class CustomBossBarManager {
     }
 
     @SubscribeEvent
+    public static void onPreRenderBossBar(RenderGuiOverlayEvent.Pre event) {
+        if (event.getOverlay().id().equals(VanillaGuiOverlay.BOSS_EVENT_PROGRESS.id())) {
+            currentVanillaBossBarBottomY = 12; 
+        }
+    }
+
+    @SubscribeEvent
+    public static void onVanillaBossBarProgress(CustomizeGuiOverlayEvent.BossEventProgress event) {
+
+        int nextY = event.getY() + event.getIncrement();
+        if (nextY > currentVanillaBossBarBottomY) {
+            currentVanillaBossBarBottomY = nextY;
+        }
+    }
+
+    @SubscribeEvent
     public static void onRenderGuiPost(RenderGuiOverlayEvent.Post event) {
         if (!shouldDisplay || Minecraft.getInstance().options.hideGui) {
+            return;
+        }
+        if (!event.getOverlay().id().equals(VanillaGuiOverlay.BOSS_EVENT_PROGRESS.id())) {
             return;
         }
         GuiGraphics guiGraphics = event.getGuiGraphics();
@@ -46,11 +69,17 @@ public class CustomBossBarManager {
         int barWidth = 144;
         int barHeight = 16;
         int x = screenWidth / 2 - barWidth / 2;
-        int y = 17;
+        int y = currentVanillaBossBarBottomY + 5;
+        if (y >= guiGraphics.guiHeight() / 3 + 20) {
+            return;
+        }
+
         float healthPercent = (maxHealth > 0.0F) ? (currentHealth / maxHealth) : 0.0F;
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
         guiGraphics.blit(BOSS_BAR_TEXTURE_UNDERHP, x, y, 0, 0, barWidth, barHeight, barWidth, barHeight);
+
         if (healthPercent > 0) {
             int progressWidth = (int) (healthPercent * (float) barWidth);
             guiGraphics.blit(BOSS_BAR_TEXTURE, x, y, 0, 0, progressWidth, barHeight, barWidth, barHeight);
@@ -61,10 +90,12 @@ public class CustomBossBarManager {
                 guiGraphics.fill(sheenX, y, endX, y + barHeight, 0x22FFFFFF);
             }
         }
+
         String nameStr = bossName.getString();
         int totalNameWidth = mc.font.width(nameStr);
         float startX = (screenWidth / 2f) - (totalNameWidth / 2f);
         float currentX = startX;
+
         for (int i = 0; i < nameStr.length(); i++) {
             String singleChar = String.valueOf(nameStr.charAt(i));
             float timeScale = ticks * 0.08f + (i * 0.5f);
@@ -76,6 +107,7 @@ public class CustomBossBarManager {
             int charColor;
             float colorFreq = ticks * 0.15f + (i * 0.4f);
             float colorFactor = (Mth.sin(colorFreq) + 1.0f) / 2.0f;
+
             if (isSecondForm) {
                 int r = 255;
                 int g = (int) Mth.lerp(colorFactor, 150, 250);
@@ -93,9 +125,11 @@ public class CustomBossBarManager {
                 int b = (int) Mth.lerp(colorFactor, 0, 150);
                 charColor = (r << 16) | (g << 8) | b;
             }
+
             guiGraphics.drawString(mc.font, singleChar, (int) (currentX + charOffX), (int) (y - 12 + charOffY), charColor, true);
             currentX += mc.font.width(singleChar);
         }
+
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.disableBlend();
     }

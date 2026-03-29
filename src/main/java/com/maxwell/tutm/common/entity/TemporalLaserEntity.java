@@ -27,7 +27,7 @@ import java.util.List;
 @AutoRegisterEntity(
         name = "temporal_laser",
         width = 0.5f, height = 0.5f,
-        renderer = TemporalLaserRenderer.class
+        renderer = "com.maxwell.tutm.client.renderer.TemporalLaserRenderer"
 )
 public class TemporalLaserEntity extends Entity {
     public static final int CHARGE_TIME = 18;

@@ -37,7 +37,7 @@ public class RitualEventHandler {
             level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, 666.5, 10, 666.5, 50, 2.0, 30.0, 2.0, 0.05);
         }
         for (Player player : level.players()) {
-            AABB searchArea = player.getBoundingBox().inflate(100.0); // 広めに検索
+            AABB searchArea = player.getBoundingBox().inflate(100.0); 
             List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, searchArea);
 
             for (ItemEntity item : items) {
@@ -80,7 +80,7 @@ public class RitualEventHandler {
             }
         }
         if (dim == TUTMDimensions.TIME_REALM_LEVEL_KEY && item.getY() <= 10) {
-            // 高さを無視して XZ平面上の距離を計算
+
             double dx = item.getX() - 666.5;
             double dz = item.getZ() - 666.5;
             double distSq = dx * dx + dz * dz;
@@ -95,10 +95,9 @@ public class RitualEventHandler {
         oldItem.getPersistentData().putBoolean("tutm_processed", true);
         oldItem.discard();
 
-        // 座標 (X, Z) は維持し、指定した Y にスポーン
         ItemEntity newItem = new ItemEntity(level, oldItem.getX(), spawnY, oldItem.getZ(), result);
         newItem.setDeltaMovement(0, 0.5, 0);
-        newItem.setInvulnerable(true); // 念のため少しの間無敵
+        newItem.setInvulnerable(true); 
         level.addFreshEntity(newItem);
     }
     @SubscribeEvent

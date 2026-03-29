@@ -17,7 +17,7 @@ import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 @Mod(TUTM.MODID)
 public class TUTM {
     public static final String MODID = "tutm";
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public TUTM() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

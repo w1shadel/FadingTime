@@ -23,7 +23,7 @@ import java.util.List;
         width = 1.2f,
         height = 1.2f,
         category = MobCategory.MISC,
-        renderer = ChronosGearRenderer.class
+        renderer =  "com.maxwell.tutm.client.renderer.ChronosGearRenderer"
 )
 public class ChronosGearEntity extends Entity {
     public static final int WAIT_TICKS = 40;

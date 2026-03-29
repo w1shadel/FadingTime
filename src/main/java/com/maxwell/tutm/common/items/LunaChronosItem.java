@@ -24,7 +24,6 @@ public class LunaChronosItem extends Item implements AllLunarChronoItem {
             int currentPhase = level.getMoonPhase();
             int collectedCount = HaloPartHelper.getCollectedCount(stack);
 
-            // 1. 基本情報
             tooltip.add(Component.translatable("tooltip.tutm.moon_phase", currentPhase).withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.translatable("tooltip.tutm.parts_collected", collectedCount).withStyle(ChatFormatting.GOLD));
 

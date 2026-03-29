@@ -36,12 +36,20 @@ public class HaloAbilitiesEvent {
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!(event.getEntity() instanceof Player player) || player.level().isClientSide) return;
+        if (!(entity instanceof Player player) || player.level().isClientSide) return;
+
         AttributeInstance attackDamageAttribute = player.getAttribute(Attributes.ATTACK_DAMAGE);
         AttributeInstance armorAttribute = player.getAttribute(Attributes.ARMOR);
+
         if (CurioUtil.hasHalo(player)) {
+            if (!player.getAbilities().mayfly) {
+                player.getAbilities().mayfly = true;
+                player.onUpdateAbilities();
+            }
+
             entity.setLastHurtByMob(null);
             entity.removeAllEffects();
+
             if (entity.getDeltaMovement().horizontalDistanceSqr() < 0.0001) {
                 entity.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 5, 0, false, false, false));
             }
@@ -49,7 +57,6 @@ public class HaloAbilitiesEvent {
             player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
                 double finalAtkBonus = data.attackBonus;
                 double finalDefBonus = data.defenseBonus;
-
                 double atkMultiplier = Math.max(0.01, (100.0 + finalAtkBonus) / 100.0);
                 AttributeModifier oldAttackModifier = attackDamageAttribute.getModifier(ATTACK_DAMAGE_MODIFIER_ID);
                 if (oldAttackModifier == null || Math.abs(oldAttackModifier.getAmount() - (atkMultiplier - 1.0)) > 0.01) {
@@ -68,6 +75,12 @@ public class HaloAbilitiesEvent {
             });
 
         } else {
+            if (!player.isCreative() && !player.isSpectator() && player.getAbilities().mayfly) {
+                player.getAbilities().mayfly = false;
+                player.getAbilities().flying = false;
+                player.onUpdateAbilities();
+            }
+
             if (attackDamageAttribute.getModifier(ATTACK_DAMAGE_MODIFIER_ID) != null) {
                 attackDamageAttribute.removeModifier(ATTACK_DAMAGE_MODIFIER_ID);
             }

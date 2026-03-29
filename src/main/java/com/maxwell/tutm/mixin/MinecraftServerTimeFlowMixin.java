@@ -1,8 +1,10 @@
 package com.maxwell.tutm.mixin;
 
+import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.logic.BossTimeManager;
 import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.logic.TimeManager;
+import com.maxwell.tutm.common.util.CurioUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,11 +31,17 @@ public abstract class MinecraftServerTimeFlowMixin {
             TimeManager.serverTick(player);
         }
         BossTimeMode mode = BossTimeManager.getMode();
+        serverlevel.getAllEntities().forEach(entity -> {
+            if (entity instanceof The_Ultimate_TimeManagerEntity boss) {
+                boss.forceTick();
+            }
+        });
+
         if (mode != BossTimeMode.NORMAL) {
             switch (mode) {
                 case STOPPED, ABSOLUTE_STOP -> {
                     TimeManager.tickImmuneEntitiesOnly(serverlevel);
-                    return;
+                    return; 
                 }
                 case ACCELERATING -> {
                     int factor = BossTimeManager.getAccelFactor();

@@ -190,7 +190,7 @@ public class The_Ultimate_Time_ManagerModel extends HierarchicalModel<The_Ultima
         float yawRad = pNetHeadYaw * ((float) Math.PI / 180F);
         float pitchRad = pHeadPitch * ((float) Math.PI / 180F);
         this.head.yRot = yawRad;
-        this.head.xRot = pitchRad;
+        this.head.xRot = -pitchRad;
         float time = pAgeInTicks;
         this.halo.zRot = time * 0.0314F;
         this.behind_halo.zRot = -time * 0.0157F;

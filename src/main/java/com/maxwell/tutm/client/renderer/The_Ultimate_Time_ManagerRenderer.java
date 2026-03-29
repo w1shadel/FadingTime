@@ -44,7 +44,6 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
     protected void setupRotations(The_Ultimate_TimeManagerEntity entity, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTicks) {
         super.setupRotations(entity, poseStack, ageInTicks, rotationYaw, partialTicks);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        this.model.head.xRot *= -1;
     }
     private static class TimeManagerGlowLayer extends RenderLayer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
         public TimeManagerGlowLayer(RenderLayerParent<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> parent) {

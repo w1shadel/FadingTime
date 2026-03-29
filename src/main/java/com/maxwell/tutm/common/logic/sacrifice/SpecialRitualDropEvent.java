@@ -51,12 +51,6 @@ public class SpecialRitualDropEvent {
             }
 
         }
-
-        if (victim instanceof AbstractIllager) {
-            if (event.getSource().getDirectEntity() instanceof Creeper creeper && creeper.isPowered()) {
-                dropItem(victim, ModItems.ILLAGER_HEAD.get());
-            }
-        }
     }
 
     private static boolean isHoldingClock(Player player) {

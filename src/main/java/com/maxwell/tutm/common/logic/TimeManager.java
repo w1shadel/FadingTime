@@ -167,33 +167,41 @@ public class TimeManager {
 
     public static boolean isImmune(Entity entity, net.minecraft.world.level.Level level) {
         if (entity == null) return false;
-        if (entity instanceof LivingEntity living && CurioUtil.hasHalo(living)) return true;
+        if (entity instanceof LivingEntity living && CurioUtil.hasHalo(living)) {
+            return true;
+        }
+        if (entity instanceof The_Ultimate_TimeManagerEntity) {
+            return true;
+        }
         if (BossTimeManager.getModeFor(level) == BossTimeMode.ABSOLUTE_STOP) {
-            return entity instanceof The_Ultimate_TimeManagerEntity;
+            return false;
         }
         if (currentMode == PlayerTimeMode.STOPPED) {
-            boolean isAbsoluteStop = false;
+            boolean isGodPresent = false;
             for (Player p : level.players()) {
                 if (CurioUtil.hasHalo(p)) {
-                    isAbsoluteStop = true;
+                    isGodPresent = true;
                     break;
                 }
             }
-            if (isAbsoluteStop) {
+            if (isGodPresent) {
                 return false;
             }
         }
-        if (entity instanceof The_Ultimate_TimeManagerEntity) return true;
         if (entity instanceof Player p) {
-            if (p.isCreative() || p.isSpectator() || p.getMainHandItem().getItem() == ModItems.DEBUG.get()) return true;
+            if (p.isCreative() || p.isSpectator() || p.getMainHandItem().getItem() == ModItems.DEBUG.get()) {
+                return true;
+            }
             return p.getCapability(TimeDataCapability.INSTANCE).map(data -> {
-                if (isTimeStopped(level)) return data.tier >= 2 && data.currentCost > 0;
+                if (isTimeStopped(level)) {
+                    return data.tier >= 2 && data.currentCost > 0;
+                }
                 return data.currentCost > 0;
             }).orElse(false);
         }
+
         return false;
     }
-
     public static void recordState(Entity entity) {
         if (entity.level().isClientSide) return;
         if (isTimeStopped() || isRewinding()) return;

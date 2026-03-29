@@ -28,14 +28,23 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        ModEntities.RENDERER_MAP.forEach((reg, rendererClass) -> {
-            event.registerEntityRenderer((EntityType) reg.get(), context -> {
-                try {
-                    return (EntityRenderer) rendererClass.getConstructor(EntityRendererProvider.Context.class).newInstance(context);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModEntities.RENDERER_MAP.forEach((reg, rendererClassName) -> {
+            try {
+                Class<?> rendererClass = Class.forName(rendererClassName);
+
+                event.registerEntityRenderer((EntityType) reg.get(), context -> {
+                    try {
+                        return (EntityRenderer) rendererClass
+                                .getConstructor(EntityRendererProvider.Context.class)
+                                .newInstance(context);
+                    } catch (Exception e) {
+                        TUTM.LOGGER.error("Failed to create renderer instance for: " + rendererClassName, e);
+                        throw new RuntimeException(e);
+                    }
+                });
+            } catch (ClassNotFoundException e) {
+                TUTM.LOGGER.error("Renderer class not found: " + rendererClassName, e);
+            }
         });
     }
 

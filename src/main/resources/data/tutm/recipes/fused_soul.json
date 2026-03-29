@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "tutm:cat_soul" },
+    { "item": "tutm:slime_ethereal_amalgam" }
+  ],
+  "result": {
+    "item": "tutm:fused_soul"
+  }
+}
