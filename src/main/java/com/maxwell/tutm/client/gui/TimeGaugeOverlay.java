@@ -2,7 +2,6 @@ package com.maxwell.tutm.client.gui;
 
 import com.maxwell.tutm.TUTM;
 import com.maxwell.tutm.client.renderer.TimeRenderHandler;
-import com.maxwell.tutm.common.util.CurioHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 

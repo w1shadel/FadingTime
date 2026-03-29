@@ -1,14 +1,20 @@
 package com.maxwell.tutm;
 
+import com.maxwell.tutm.client.renderer.TimeHaloCurioRenderer;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
-import com.maxwell.tutm.init.*;
+import com.maxwell.tutm.init.ModEffects;
+import com.maxwell.tutm.init.ModEntities;
+import com.maxwell.tutm.init.ModItems;
+import com.maxwell.tutm.init.ModSounds;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 @SuppressWarnings("removal")
 @Mod(TUTM.MODID)
@@ -25,6 +31,7 @@ public class TUTM {
         ModSounds.SOUND_EVENTS.register(modEventBus);
         ModEffects.MOB_EFFECTS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
+        modEventBus.addListener(this::clientSetup);
     }
 
     public static ResourceLocation getResourceLocation(String location) {
@@ -33,5 +40,15 @@ public class TUTM {
 
     public static ResourceLocation getResourceLocation(String nameSpace, String location) {
         return new ResourceLocation(nameSpace, location);
+    }
+
+    private void clientSetup(final FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            CuriosRendererRegistry.register(
+                    ModItems.TIME_HALO.get(),
+                    TimeHaloCurioRenderer::new
+            );
+            LOGGER.info("TUTM: Registered Curio Renderer for TIME_HALO");
+        });
     }
 }

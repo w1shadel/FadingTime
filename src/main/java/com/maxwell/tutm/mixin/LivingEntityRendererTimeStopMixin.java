@@ -14,7 +14,7 @@ public abstract class LivingEntityRendererTimeStopMixin {
     @ModifyVariable(method = "render", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private float tutm$adjustPartialTicks(float partialTicks, LivingEntity pEntity) {
         if (TimeManager.isTimeStopped() || BossTimeManager.isTimeStopped()) {
-            return TimeManager.isImmune(pEntity) ? TimeRenderHandler.getPartialTicks() : 0.0F;
+            return TimeManager.isImmune(pEntity, pEntity.level()) ? TimeRenderHandler.getPartialTicks() : 0.0F;
         }
         if (TimeManager.getPlayerAccelerationFactor(pEntity) > 1 ||
                 BossTimeManager.getBossAccelerationFactor() > 1 ||

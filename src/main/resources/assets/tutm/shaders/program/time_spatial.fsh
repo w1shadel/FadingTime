@@ -3,8 +3,8 @@
 uniform sampler2D DiffuseSampler;
 uniform float StopProgress;
 uniform float Time;
-uniform float AccelFactor;// 加速倍率 (1.0以上)
-uniform float Mode;// 1.0:加速, 2.0:停止, 3.0:逆行
+uniform float AccelFactor; // 加速倍率 (1.0以上)
+uniform float Mode;        // 1.0:加速, 2.0:停止, 3.0:逆行, 4.0:絶対停止
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -18,9 +18,13 @@ void main() {
 
     vec4 finalOutput;
 
-    if (Mode == 1.0) {
+    // ★ 修正: 小数点の誤差(3.9999等)で判定がすり抜けないよう整数に変換する
+    int effectMode = int(Mode + 0.1);
+
+    if (effectMode == 1) {
         // === 加速エフェクト (TIME ACCELERATION) ===
-        float shift = (AccelFactor - 1.0) * 0.015 * dist;
+        // ★ Java側から渡された AccelFactor を使って歪みを適用
+        float shift = (max(AccelFactor, 1.0) - 1.0) * 0.015 * dist;
         vec2 shiftVec = uv * shift;
 
         float r = texture(DiffuseSampler, texCoord + shiftVec).r;
@@ -36,7 +40,7 @@ void main() {
 
         finalOutput = vec4(color, 1.0);
 
-    } else if (Mode == 2.0) {
+    } else if (effectMode == 2) {
         // === 停止エフェクト (TIME STOP) ===
         float radius = StopProgress * 1.5;
         float expansionEdgeMask = smoothstep(0.15, 0.0, abs(dist - radius));
@@ -62,57 +66,43 @@ void main() {
 
         finalOutput = vec4(finalColor, 1.0);
 
-    } else if (Mode == 3.0) {
+    } else if (effectMode == 3) {
         // === 遡行エフェクト (TIME REWIND) ===
-        // 1. 強めの色収差 (RGBを横に大きくずらす)
         float shift = 0.01 + sin(Time * 20.0) * 0.005;
         float r = texture(DiffuseSampler, texCoord + vec2(shift, 0.0)).r;
         float g = texture(DiffuseSampler, texCoord).g;
         float b = texture(DiffuseSampler, texCoord - vec2(shift, 0.0)).b;
         vec3 color = vec3(r, g, b);
 
-        // 2. 青みがかったモノクロ（冷たい過去の表現）
         float luma = dot(color, vec3(0.299, 0.587, 0.114));
         vec3 blueTint = vec3(luma * 0.4, luma * 0.8, luma * 1.5);
         color = mix(color, blueTint, 0.7);
 
-        // 3. VCR風スキャンライン (横線)
         float scanline = sin(texCoord.y * 500.0 + Time * 15.0) * 0.05;
         color -= scanline;
-
-        // 4. 画面全体のフリッカー (チカチカ)
         float flicker = sin(Time * 100.0) * 0.02;
         color += flicker;
-
-        // 5. 周辺減光 (ビネット)
         float vignette = smoothstep(1.0, 0.5, dist);
         color *= vignette;
 
         finalOutput = vec4(color, 1.0);
 
-    } else if (Mode == 4.0) {
+    } else if (effectMode == 4) {
         // === 絶対停止エフェクト (ABSOLUTE TIME STOP - BOSS ONLY) ===
-        // 1. 画面の色を反転 (ネガティブ)
-        vec4 col = texture(DiffuseSampler, texCoord);
-        vec3 inverted = 1.0 - col.rgb;
-
-        // 2. 禍々しい赤と黒の色調へ補正
-        float luma = dot(inverted, vec3(0.299, 0.587, 0.114));
-        vec3 bloodColor = vec3(luma * 1.5, luma * 0.2, luma * 0.1); // 赤みを強調
-        vec3 color = mix(inverted, bloodColor, 0.5);
-
-        // 3. 空間の亀裂のようなノイズ (時間軸の崩壊表現)
+        // ★ 修正: ノイズ座標を先に計算し、1回だけテクスチャを取得して色を反転する
         float noise = sin(texCoord.y * 800.0 + Time * 30.0) * 0.01;
-        float glitch = step(0.98, sin(Time * 2.0 + texCoord.y * 10.0)) * 0.02; // たまに横にズレる
+        float glitch = step(0.98, sin(Time * 2.0 + texCoord.y * 10.0)) * 0.02;
         vec2 distortedCoord = texCoord + vec2(noise + glitch, 0.0);
 
-        // 再サンプリングして色の反転を維持
-        color = 1.0 - texture(DiffuseSampler, distortedCoord).rgb;
+        vec4 col = texture(DiffuseSampler, distortedCoord);
+        vec3 inverted = 1.0 - col.rgb;
 
-        // 4. ハイコントラスト化
+        // ★ その後、禍々しい赤色を適用
+        float luma = dot(inverted, vec3(0.299, 0.587, 0.114));
+        vec3 bloodColor = vec3(luma * 1.5, luma * 0.2, luma * 0.1);
+        vec3 color = mix(inverted, bloodColor, 0.5);
+
         color = (color - 0.5) * 1.8 + 0.5;
-
-        // 5. 周辺を暗い赤で覆う (絶望的なビネット)
         float vignette = smoothstep(1.1, 0.4, dist);
         color *= mix(vec3(0.1, 0.0, 0.0), vec3(1.0), vignette);
 

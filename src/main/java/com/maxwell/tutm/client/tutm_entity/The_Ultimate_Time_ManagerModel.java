@@ -18,7 +18,7 @@ public class The_Ultimate_Time_ManagerModel extends HierarchicalModel<The_Ultima
     public final ModelPart effectB;
     private final ModelPart waist;
     private final ModelPart body;
-    private final ModelPart head;
+    public final ModelPart head;
     private final ModelPart neck;
     private final ModelPart halo;
     private final ModelPart short_1;

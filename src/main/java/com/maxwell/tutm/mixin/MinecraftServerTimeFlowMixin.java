@@ -28,25 +28,26 @@ public abstract class MinecraftServerTimeFlowMixin {
         for (ServerPlayer player : this.getPlayerList().getPlayers()) {
             TimeManager.serverTick(player);
         }
-        if (BossTimeManager.getMode() != BossTimeMode.NORMAL) {
-            switch (BossTimeManager.getMode()) {
-                case STOPPED, ABSOLUTE_STOP -> TimeManager.tickImmuneEntitiesOnly(serverlevel);
+        BossTimeMode mode = BossTimeManager.getMode();
+        if (mode != BossTimeMode.NORMAL) {
+            switch (mode) {
+                case STOPPED, ABSOLUTE_STOP -> {
+                    TimeManager.tickImmuneEntitiesOnly(serverlevel);
+                    return;
+                }
                 case ACCELERATING -> {
                     int factor = BossTimeManager.getAccelFactor();
                     for (int i = 0; i < factor; i++) {
                         serverlevel.tick(pHasTimeLeft);
                     }
+                    return;
                 }
             }
-            return;
         }
-        if (TimeManager.isTimeStopped()) {
+        if (TimeManager.isTimeStopped(serverlevel)) {
             TimeManager.tickImmuneEntitiesOnly(serverlevel);
-        } else if (TimeManager.isRewinding()) {
-            serverlevel.tick(pHasTimeLeft);
         } else {
             serverlevel.tick(pHasTimeLeft);
         }
-
     }
 }

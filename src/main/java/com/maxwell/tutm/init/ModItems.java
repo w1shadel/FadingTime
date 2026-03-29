@@ -16,6 +16,8 @@ public class ModItems {
             TimeStopDebuggerItem::new);
     public static final RegistryObject<Item> TEMPORAL_SHOOTER = ITEMS.register("temporal_shooter",
             () -> new TemporalShooterItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> TIME_HALO = ITEMS.register("time_halo",
+            () -> new TimeHaloItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> CHRONO_TANK1 = ITEMS.register("chrono_tank1",
             () -> new ChronoTankItem(1, Rarity.COMMON));
     public static final RegistryObject<Item> CHRONO_TANK2 = ITEMS.register("chrono_tank2",
@@ -24,10 +26,27 @@ public class ModItems {
             () -> new ChronoTankItem(3, Rarity.COMMON));
     public static final RegistryObject<Item> CHRONO_CLOCK = ITEMS.register("chrono_clock",
             () -> new TimeItem(new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> HALO_PART = ITEMS.register("halo_part",
+            () -> new HaloPartItem(new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK = ITEMS.register("lunar_chrono_clock",
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_CHARGED = ITEMS.register("lunar_chrono_clock_charged",
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_NETHER = ITEMS.register("lunar_chrono_clock_nether",
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_END = ITEMS.register("lunar_chrono_clock_end",
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+    public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_TIME = ITEMS.register("lunar_chrono_clock_time",
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
     public static final RegistryObject<Item> TIME_SAND = ITEMS.register("time_sand",
             () -> new ComponentItem(new Item.Properties().rarity(Rarity.UNCOMMON), Component.translatable("item.tutm.time_sand.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY)));
     public static final RegistryObject<Item> TIME_SAND_DUST = ITEMS.register("time_sand_dust",
             () -> new ComponentItem(new Item.Properties(), Component.translatable("item.tutm.time_sand_dust.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY)));
     public static final RegistryObject<Item> INFINITE_TIME_CLOCK = ITEMS.register("infinite_time_clock",
             () -> new ComponentItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), Component.translatable("item.tutm.infinite_time_clock.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY)));
+    public static final RegistryObject<Item> CHRONOSGODS_TIME_FRAME = ITEMS.register("chronos_gods_time_frame",
+            () -> new ComponentItem(new Item.Properties().rarity(Rarity.EPIC), Component.translatable("item.tutm.chronos_gods_time_frame.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY)));
 }

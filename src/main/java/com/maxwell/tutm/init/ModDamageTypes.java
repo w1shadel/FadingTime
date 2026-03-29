@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 public class ModDamageTypes {
     public static final ResourceKey<DamageType> TIME = ResourceKey.create(
             Registries.DAMAGE_TYPE, TUTM.getResourceLocation("time"));
+    public static final ResourceKey<DamageType> LASER = ResourceKey.create(Registries.DAMAGE_TYPE, TUTM.getResourceLocation("laser"));
 
     public static DamageSource getTimeDamageSource(Level level, @Nullable Entity attacker) {
         Holder.Reference<DamageType> holder = level.registryAccess()
@@ -22,6 +23,11 @@ public class ModDamageTypes {
         if (attacker != null) {
             return new DamageSource(holder, attacker);
         }
+
         return new DamageSource(holder);
+    }
+    public static DamageSource getLaserDamageSource(Level level, Entity attacker) {
+        var holder = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(LASER);
+        return new DamageSource(holder, attacker);
     }
 }

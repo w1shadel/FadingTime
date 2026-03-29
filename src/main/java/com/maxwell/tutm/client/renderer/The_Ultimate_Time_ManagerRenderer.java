@@ -38,12 +38,14 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
 
     @Override
     public void render(The_Ultimate_TimeManagerEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
-        pPoseStack.pushPose();
-        pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
-        pPoseStack.popPose();
     }
-
+    @Override
+    protected void setupRotations(The_Ultimate_TimeManagerEntity entity, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTicks) {
+        super.setupRotations(entity, poseStack, ageInTicks, rotationYaw, partialTicks);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        this.model.head.xRot *= -1;
+    }
     private static class TimeManagerGlowLayer extends RenderLayer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
         public TimeManagerGlowLayer(RenderLayerParent<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> parent) {
             super(parent);

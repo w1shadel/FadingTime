@@ -1,4 +1,4 @@
 {
   "entities": ["minecraft:player"],
-  "slots": ["chrono_tank","time_slot"]
+  "slots": ["chrono_tank","time_slot", "head"]
 }

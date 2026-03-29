@@ -5,7 +5,6 @@ import com.maxwell.tutm.common.entity.ai.ChronosGearGoal;
 import com.maxwell.tutm.common.entity.ai.LaserOctaBurstGoal;
 import com.maxwell.tutm.common.logic.BossTimeManager;
 import com.maxwell.tutm.common.logic.BossTimeMode;
-import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
 import com.maxwell.tutm.common.network.UpdateBossBarPacket;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
@@ -42,6 +41,7 @@ import java.util.UUID;
         renderer = The_Ultimate_Time_ManagerRenderer.class
 )
 public class The_Ultimate_TimeManagerEntity extends Monster {
+    private static final EntityDataAccessor<Boolean> IS_ALLY = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SECOND_FORM = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
     public final AnimationState idleAnimationState = new AnimationState();
     private final Set<UUID> trackingPlayers = new HashSet<>();
@@ -59,7 +59,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         this.lastSecondFormState = false;
         this.setNoGravity(true);
     }
-
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 1000.0D)
@@ -141,8 +140,8 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(IS_SECOND_FORM, false);
+        this.entityData.define(IS_ALLY, false); // 仲間フラグ
     }
-
     public boolean isSecondForm() {
         return this.entityData.get(IS_SECOND_FORM);
     }
@@ -229,12 +228,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         super.setHealth(pHealth);
     }
 
-    @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (amount > 50.0f) amount = 50.0f;
-        return super.hurt(source, amount);
-    }
-
     private void broadcastBossBarPacket(boolean shouldDisplay) {
         if (this.level().isClientSide) return;
         UpdateBossBarPacket packet;
@@ -252,14 +245,12 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     }
 
     @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(1, new LaserOctaBurstGoal(this));
-        this.goalSelector.addGoal(2, new ChronosGearGoal(this));
-        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
+    public void registerGoals() {
+     this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+            this.goalSelector.addGoal(1, new LaserOctaBurstGoal(this));
+            this.goalSelector.addGoal(2, new ChronosGearGoal(this));
+            this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
-
     private void handleFlightMovement(LivingEntity target) {
         orbitAngle += isSecondForm() ? 0.08 : 0.04;
         double radius = 8.0 + Math.sin(this.tickCount * 0.05) * 4.0;
@@ -285,14 +276,22 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             }
         }
     }
-
     private void shootConstantLaser(LivingEntity target) {
-        Vec3 velocity = target.getDeltaMovement();
-        Vec3 predictedPos = target.position().add(
-                velocity.x * 15,
-                0,
-                velocity.z * 15
-        ).add((random.nextDouble() - 0.5) * 3, 0, (random.nextDouble() - 0.5) * 3);
+        Vec3 targetPos = target.getBoundingBox().getCenter();
+        double distance = this.distanceTo(target);
+        double leadTime = distance * 0.6;
+        Vec3 targetVel = target.getDeltaMovement();
+        Vec3 predictedPos = targetPos.add(
+                targetVel.x * leadTime,
+                targetVel.y * leadTime,
+                targetVel.z * leadTime
+        );
+        double spread = isSecondForm() ? 0.2 : 0.8;
+        predictedPos = predictedPos.add(
+                (random.nextDouble() - 0.5) * spread,
+                (random.nextDouble() - 0.5) * spread,
+                (random.nextDouble() - 0.5) * spread
+        );
         TemporalLaserEntity laser = new TemporalLaserEntity(this.level(), this, predictedPos, 0);
         this.level().addFreshEntity(laser);
     }

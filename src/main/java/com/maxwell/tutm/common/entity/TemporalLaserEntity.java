@@ -4,6 +4,7 @@ import com.maxwell.tutm.client.renderer.TemporalLaserRenderer;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
 import com.maxwell.tutm.common.util.EntityHelper;
+import com.maxwell.tutm.init.ModDamageTypes;
 import com.maxwell.tutm.init.ModEntities;
 import com.maxwell.tutm.init.ModSounds;
 import net.minecraft.nbt.CompoundTag;
@@ -12,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -40,10 +42,10 @@ public class TemporalLaserEntity extends Entity {
         this.noPhysics = true;
     }
 
-    public TemporalLaserEntity(Level level, LivingEntity owner, Vec3 targetPos, int inithalAge) {
+    public TemporalLaserEntity(Level level, LivingEntity owner, Vec3 targetPos, int initialAge) {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
-        this.entityData.set(AGE, inithalAge);
+        this.entityData.set(AGE, initialAge);
         Vec3 pos = owner.position().add(0, owner.getEyeHeight(), 0);
         this.setPos(pos.x, pos.y, pos.z);
         this.xo = pos.x;
@@ -64,7 +66,29 @@ public class TemporalLaserEntity extends Entity {
             this.entityData.set(STACKED, true);
         }
     }
-
+    public TemporalLaserEntity(Level level, LivingEntity owner, Vec3 spawnPos, Vec3 targetPos, int initialAge) {
+        this(ModEntities.get(TemporalLaserEntity.class), level);
+        this.owner = owner;
+        this.entityData.set(AGE, initialAge);
+        this.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+        this.xo = spawnPos.x;
+        this.yo = spawnPos.y;
+        this.zo = spawnPos.z;
+        double dx = targetPos.x - this.getX();
+        double dy = targetPos.y - this.getY();
+        double dz = targetPos.z - this.getZ();
+        double dXZ = Math.sqrt(dx * dx + dz * dz);
+        float yaw = (float) (Mth.atan2(dz, dx) * (180D / Math.PI)) - 90F;
+        float pitch = (float) -(Mth.atan2(dy, dXZ) * (180D / Math.PI));
+        this.setYRot(yaw);
+        this.setXRot(pitch);
+        this.yRotO = yaw;
+        this.xRotO = pitch;
+        this.entityData.set(LASER_DIR, new Vec3(dx, dy, dz).normalize().toVector3f());
+        if (TimeManager.isTimeStopped()) {
+            this.entityData.set(STACKED, true);
+        }
+    }
     @Override
     protected void defineSynchedData() {
         this.entityData.define(AGE, 0);
@@ -130,7 +154,8 @@ public class TemporalLaserEntity extends Entity {
             for (LivingEntity target : targets) {
                 if (hitInThisTick.contains(target)) continue;
                 if (!(this.owner instanceof The_Ultimate_TimeManagerEntity && target == this.owner)) {
-                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10);
+                    DamageSource laserSource = ModDamageTypes.getLaserDamageSource(this.level(), this.owner);
+                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10, laserSource);
                     hitInThisTick.add(target);
                 }
             }

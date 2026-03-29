@@ -1,9 +1,7 @@
 package com.maxwell.tutm.mixin;
 
-import com.maxwell.tutm.common.logic.BossTimeManager;
-import com.maxwell.tutm.common.logic.BossTimeMode;
-import com.maxwell.tutm.common.logic.EntityState;
-import com.maxwell.tutm.common.logic.TimeManager;
+import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
+import com.maxwell.tutm.common.logic.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -26,20 +24,32 @@ public abstract class LevelTimeManagerMixin {
     @Inject(method = "guardEntityTick", at = @At("HEAD"), cancellable = true)
     private void tutm$manageFlow(Consumer<Entity> consumer, Entity entity, CallbackInfo ci) {
         if (tutm$isProcessing) return;
-        boolean isAbsoluteStop = BossTimeManager.getMode() == BossTimeMode.ABSOLUTE_STOP;
         boolean isServer = !entity.level().isClientSide();
-        boolean isImmune = !isAbsoluteStop && TimeManager.isImmune(entity);
-        boolean isTimeStopped = TimeManager.isTimeStopped() || BossTimeManager.isTimeStopped();
-        int factor = BossTimeManager.getMode() == BossTimeMode.ACCELERATING
-                ? BossTimeManager.getAccelFactor()
+        Level level = entity.level();
+        BossTimeMode bMode = BossTimeManager.getModeFor(level);
+        PlayerTimeMode pMode = TimeManager.getModeFor(level);
+        boolean isAbsoluteStop = bMode == BossTimeMode.ABSOLUTE_STOP;
+        boolean isBossStopping = bMode == BossTimeMode.STOPPED || isAbsoluteStop;
+        boolean isPlayerStopping = pMode == PlayerTimeMode.STOPPED;
+        boolean isTimeStopped = isBossStopping || isPlayerStopping;
+        int factor = bMode == BossTimeMode.ACCELERATING
+                ? BossTimeManager.getAccelFactorFor(level)
                 : TimeManager.getPlayerAccelerationFactor(entity);
+        boolean isImmune = false;
+        if (isAbsoluteStop) {
+            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity);
+        } else if (isBossStopping) {
+            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity);
+        } else if (isPlayerStopping) {
+            isImmune = TimeManager.isImmune(entity, level);
+        }
         if (isTimeStopped && !isImmune) {
             entity.setPos(entity.xo, entity.yo, entity.zo);
             entity.setDeltaMovement(0, 0, 0);
             ci.cancel();
             return;
         }
-        if (TimeManager.isRewinding()) {
+        if (pMode == PlayerTimeMode.REWINDING && !isBossStopping) {
             if (!isImmune || entity instanceof Player) {
                 if (isServer) {
                     EntityState s = TimeManager.popState(entity);
@@ -47,7 +57,7 @@ public abstract class LevelTimeManagerMixin {
                         TimeManager.applyState(entity, s);
                         if (entity instanceof ServerPlayer sp) {
                             sp.connection.teleport(s.pos().x, s.pos().y, s.pos().z, s.yRot(), s.xRot());
-                        } else if (entity.level() instanceof ServerLevel sl) {
+                        } else if (level instanceof ServerLevel sl) {
                             var entityMap = ((ChunkMapAccessor) sl.getChunkSource().chunkMap).getEntityMap();
                             Object tracked = entityMap.get(entity.getId());
                             if (tracked != null) {
@@ -58,12 +68,16 @@ public abstract class LevelTimeManagerMixin {
                         TimeManager.forceNormalize();
                     }
                 }
-                ci.cancel();
-                return;
+                if (!(entity instanceof Player && !isServer)) {
+                    entity.setPos(entity.xo, entity.yo, entity.zo);
+                    entity.setDeltaMovement(0, 0, 0);
+                    ci.cancel();
+                    return;
+                }
             }
         }
         if (factor > 1) {
-            if (isImmune) {
+            if (isImmune || entity instanceof Player) {
                 tutm$isProcessing = true;
                 for (int i = 0; i < factor - 1; i++) {
                     entity.xo = entity.getX();

@@ -4,6 +4,8 @@
   "item.tutm.chrono_tank2": "Chrono-Tank Mk2",
   "item.tutm.chrono_tank3": "Chrono-Tank Mk3",
   "curios.identifier.chrono_tank": "Chrono-Tank",
+  "curios.identifier.time_slot": "Chrono-Clock",
+  "item.tutm.chrono_clock": "Chrono-Clock",
   "entity.tutm.the_ultimate_time_manager": "The Ultimate Time Manager",
   "entity.tutm.the_ultimate_time_manager.phase2": "The Fading Time Manager",
   "chat.tutm.message.one": "：\"Oh, how did you get here...\"",
@@ -12,5 +14,12 @@
   "item.tutm.infinite_time_clock": "The long hand of time, The short hand of space",
   "item.tutm.time_sand_dust.desc": "A tiny grain of sand, imbued with time, is still on the verge of falling into the abyss.",
   "item.tutm.time_sand.desc": "Sand that has absorbed even more time—and yet it is still only a fraction of a greater power.",
-  "item.tutm.infinite_time_clock.desc": "A great power imbued with one of the abilities wielded by The Ultimate Time Manager."
+  "item.tutm.infinite_time_clock.desc": "A great power imbued with one of the abilities wielded by The Ultimate Time Manager.",
+  "item.tutm.chronos_gods_time_frame": "The Exquisite Gears of the God Chronos",
+  "item.tutm.chronos_gods_time_frame.desc": "One of the lost Supreme Gears—no one knows why it was found in her ruined house, how the house ended up there, or what happened to her to bring her to this state.",
+
+  "tooltip.tutm.moon_phase": "Current Moon Phase: %s",
+  "tooltip.tutm.parts_collected": "Fragments Collected: %s/8",
+  "tooltip.tutm.hint_header": "Prophecy of the Abyss:",
+  "tooltip.tutm.hint_completed": "The fragment of this phase has been claimed."
 }

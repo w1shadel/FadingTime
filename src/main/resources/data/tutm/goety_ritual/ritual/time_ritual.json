@@ -1,0 +1,20 @@
+{
+  "ritual" : "time",
+  "iconItem" : "minecraft:clock",
+  "requirements" : {
+    "blocks" : [
+      {
+        "block" : "minecraft:smithing_table"
+      },
+      {
+        "block" : "#minecraft:anvil"
+      },
+      {
+        "block" : "minecraft:gold_block"
+      },
+      {
+        "block" : "minecraft:lava_cauldron"
+      }
+    ]
+  }
+}

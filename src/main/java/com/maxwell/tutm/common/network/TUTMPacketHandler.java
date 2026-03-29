@@ -27,6 +27,16 @@ public class TUTMPacketHandler {
                 .decoder(UpdateBossBarPacket::decode)
                 .consumerMainThread(UpdateBossBarPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(C2SExecuteSkillPacket.class, packetId++)
+                .encoder(C2SExecuteSkillPacket::encode)
+                .decoder(C2SExecuteSkillPacket::decode)
+                .consumerMainThread(C2SExecuteSkillPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(C2SSelectSkillPacket.class, packetId++)
+                .encoder(C2SSelectSkillPacket::encode)
+                .decoder(C2SSelectSkillPacket::decode)
+                .consumerMainThread(C2SSelectSkillPacket::handle)
+                .add();
     }
 
 }

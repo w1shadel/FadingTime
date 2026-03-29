@@ -90,6 +90,7 @@ dependencies {
     implementation fg.deobf("curse.maven:irons-spells-n-spellbooks-855414:7822862")
     implementation fg.deobf("curse.maven:irons-patreon-library-1492763:7822858")
     implementation fg.deobf("curse.maven:geckolib-388172:7553267")
+    implementation fg.deobf("curse.maven:goety-586095:7799190")
     implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")

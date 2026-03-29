@@ -25,12 +25,16 @@ public class TimeDataCapability {
     public static class TimeData {
         public int tier = 1;
         public double currentCost = 0;
+        public int selectedSkill = 0;
+        public double attackBonus = 0;
+        public double defenseBonus = 0;
 
         public double getMaxCost() {
             return switch (tier) {
-                case 1 -> 100000.0;
-                case 2 -> 500000.0;
-                case 3 -> 2000000.0;
+                case 1 -> 1000.0;
+                case 2 -> 50000.0;
+                case 3 -> 200000.0;
+                case 4 -> Integer.MAX_VALUE;
                 default -> 0.0;
             };
         }
@@ -38,6 +42,9 @@ public class TimeDataCapability {
         public void copyFrom(TimeData source) {
             this.tier = source.tier;
             this.currentCost = source.currentCost;
+            this.selectedSkill = source.selectedSkill;
+            this.attackBonus = source.attackBonus;
+            this.defenseBonus = source.defenseBonus;
         }
     }
 
@@ -56,6 +63,9 @@ public class TimeDataCapability {
             CompoundTag nbt = new CompoundTag();
             nbt.putInt("tier", data.tier);
             nbt.putDouble("cost", data.currentCost);
+            nbt.putDouble("attackbonus", data.attackBonus);
+            nbt.putDouble("defensebonus", data.defenseBonus);
+            nbt.putInt("selectedSkill", data.selectedSkill);
             return nbt;
         }
 
@@ -63,6 +73,11 @@ public class TimeDataCapability {
         public void deserializeNBT(CompoundTag nbt) {
             data.tier = nbt.getInt("tier");
             data.currentCost = nbt.getDouble("cost");
+            data.attackBonus = nbt.getDouble("attackbonus");
+            data.defenseBonus = nbt.getDouble("defensebonus");
+            if (nbt.contains("selectedSkill")) {
+                data.selectedSkill = nbt.getInt("selectedSkill");
+            }
         }
     }
 }
