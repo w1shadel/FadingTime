@@ -2,10 +2,7 @@ package com.maxwell.tutm;
 
 import com.maxwell.tutm.client.renderer.TimeHaloCurioRenderer;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
-import com.maxwell.tutm.init.ModEffects;
-import com.maxwell.tutm.init.ModEntities;
-import com.maxwell.tutm.init.ModItems;
-import com.maxwell.tutm.init.ModSounds;
+import com.maxwell.tutm.init.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -30,6 +27,7 @@ public class TUTM {
         TUTMPacketHandler.register();
         ModSounds.SOUND_EVENTS.register(modEventBus);
         ModEffects.MOB_EFFECTS.register(modEventBus);
+        ModCreativeModeTabs.CREATIVE_MODE_TABS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::clientSetup);
     }

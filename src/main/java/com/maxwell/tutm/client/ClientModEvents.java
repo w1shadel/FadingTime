@@ -28,9 +28,6 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        if (ModEntities.RENDERER_MAP.isEmpty()) {
-            System.out.println("[TUTM] 警告: RENDERER_MAPが空です。autoRegisterが失敗している可能性があります。");
-        }
         ModEntities.RENDERER_MAP.forEach((reg, rendererClass) -> {
             event.registerEntityRenderer((EntityType) reg.get(), context -> {
                 try {

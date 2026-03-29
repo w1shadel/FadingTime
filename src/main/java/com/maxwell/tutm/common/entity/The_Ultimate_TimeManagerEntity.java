@@ -140,7 +140,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(IS_SECOND_FORM, false);
-        this.entityData.define(IS_ALLY, false); // 仲間フラグ
+        this.entityData.define(IS_ALLY, false); 
     }
     public boolean isSecondForm() {
         return this.entityData.get(IS_SECOND_FORM);

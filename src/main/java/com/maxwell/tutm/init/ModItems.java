@@ -28,18 +28,30 @@ public class ModItems {
             () -> new TimeItem(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> HALO_PART = ITEMS.register("halo_part",
-            () -> new HaloPartItem(new Item.Properties().stacksTo(1)));
+            () -> new HaloPartItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> BLACK_CAT_CORPSE = ITEMS.register("black_cat_corpse",
+            () -> new Item(new Item.Properties().rarity(Rarity.RARE).stacksTo(1)));
+
+    public static final RegistryObject<Item> SLIME_ETHEREAL_AMALGAM = ITEMS.register("slime_ethereal_amalgam", // 特定アイテムA
+            () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+
+    public static final RegistryObject<Item> ILLAGER_HEAD = ITEMS.register("illager_head",
+            () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+
+    public static final RegistryObject<Item> NIGHT_VICTORY_EMBLEM = ITEMS.register("night_victory_emblem",
+            () -> new Item(new Item.Properties().rarity(Rarity.EPIC)));
 
     public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK = ITEMS.register("lunar_chrono_clock",
-            () -> new LunaChronosItem(new Item.Properties().stacksTo(1)));
+            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).fireResistant()));
     public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_CHARGED = ITEMS.register("lunar_chrono_clock_charged",
-            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+            () -> new LunarTimeComponentItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).fireResistant(),Component.translatable("item.tutm.lunar_chrono_clock_charge.desc")));
     public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_NETHER = ITEMS.register("lunar_chrono_clock_nether",
-            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+            () -> new LunarTimeComponentItem(new Item.Properties().stacksTo(1).fireResistant().rarity(Rarity.RARE),Component.translatable("item.tutm.lunar_chrono_clock_nether.desc")));
     public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_END = ITEMS.register("lunar_chrono_clock_end",
-            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+            () -> new LunarTimeComponentItem(new Item.Properties().stacksTo(1).fireResistant().rarity(Rarity.EPIC),Component.translatable("item.tutm.lunar_chrono_clock_end.desc")));
     public static final RegistryObject<Item> LUNAR_CHRONO_CLOCK_TIME = ITEMS.register("lunar_chrono_clock_time",
-            () -> new LunaChronosItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+            () -> new LunarTimeComponentItem(new Item.Properties().stacksTo(1).fireResistant().rarity(Rarity.EPIC), Component.translatable("item.tutm.lunar_chrono_clock_time.desc")));
 
     public static final RegistryObject<Item> TIME_SAND = ITEMS.register("time_sand",
             () -> new ComponentItem(new Item.Properties().rarity(Rarity.UNCOMMON), Component.translatable("item.tutm.time_sand.desc").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY)));

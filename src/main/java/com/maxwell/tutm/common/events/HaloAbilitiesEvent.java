@@ -129,12 +129,11 @@ public class HaloAbilitiesEvent {
                                 r * Math.cos(theta)
                         );
 
-                        // 新しいコンストラクタを呼び出す
                         TemporalLaserEntity laser = new TemporalLaserEntity(
                                 player.level(),
                                 player,
-                                spawnPos,       // ここで好きな場所を指定！
-                                target.position(), // ここへ向かって飛ぶ
+                                spawnPos,       
+                                target.position(), 
                                 0
                         );
                         player.level().addFreshEntity(laser);

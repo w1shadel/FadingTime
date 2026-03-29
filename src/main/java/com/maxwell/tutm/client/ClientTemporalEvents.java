@@ -65,7 +65,7 @@ public class ClientTemporalEvents {
     @SubscribeEvent
     public static void onClientTick_Count(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
-            clientTime += 0.15f; // 回転速度調整
+            clientTime += 0.15f; 
         }
     }
     @SubscribeEvent
@@ -109,12 +109,10 @@ public class ClientTemporalEvents {
             buffer.vertex(matrix, centerX + (float)Math.cos(rad) * rOut, centerY + (float)Math.sin(rad) * rOut, 200).color(255, 255, 255, 255).endVertex();
         }
 
-        // --- 2. 針の描画（中心から太く、先は鋭く） ---
-        // 秒針・分針を疑似太線化（3本並べる）
-        drawClockNeedle(buffer, matrix, centerX, centerY, time * 2.0f, radius * 0.8f, 255, 255, 255, 255); // 秒針（速）
-        drawClockNeedle(buffer, matrix, centerX, centerY, time * 0.5f, radius * 0.6f, 255, 215, 0, 255);   // 分針（遅）
 
-        // --- 3. やかましい装飾（公転する光の欠片） ---
+        drawClockNeedle(buffer, matrix, centerX, centerY, time * 2.0f, radius * 0.8f, 255, 255, 255, 255); 
+        drawClockNeedle(buffer, matrix, centerX, centerY, time * 0.5f, radius * 0.6f, 255, 215, 0, 255);   
+
         for (int i = 0; i < 16; i++) {
             float rot = time * 2.0f + (i * 22.5f);
             float rad = (float)Math.toRadians(rot);
@@ -122,13 +120,11 @@ public class ClientTemporalEvents {
             float ox = centerX + (float)Math.cos(rad) * d;
             float oy = centerY + (float)Math.sin(rad) * d;
 
-            // 激しく回転する光の放射
             buffer.vertex(matrix, ox, oy, 200).color(255, 255, 255, 255).endVertex();
             buffer.vertex(matrix, ox + (float)Math.cos(rad) * 20, oy + (float)Math.sin(rad) * 20, 200).color(255, 100, 0, 0).endVertex();
         }
         BufferUploader.drawWithShader(buffer.end());
 
-        // --- 4. 魔法陣の面（背後で回転するエフェクト） ---
         buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
         buffer.vertex(matrix, centerX, centerY, 190).color(255, 215, 0, 80).endVertex();
         for (int i = 0; i <= 72; i++) {
@@ -141,7 +137,6 @@ public class ClientTemporalEvents {
         RenderSystem.disableBlend();
     }
 
-    // 針を太く見せるための補助関数
     private static void drawClockNeedle(BufferBuilder b, Matrix4f m, float cx, float cy, float angle, float len, int r, int g, int b_col, int a) {
         for (int offset = -1; offset <= 1; offset++) {
             float rad = (float) Math.toRadians(angle - 90 + offset * 0.5f);

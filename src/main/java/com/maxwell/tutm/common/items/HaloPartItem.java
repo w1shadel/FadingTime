@@ -10,7 +10,6 @@ public class HaloPartItem extends Item {
         super(pProperties);
     }
 
-    // パーツにNBTを付与するメソッド
     public static ItemStack createPart(int phase) {
         ItemStack stack = new ItemStack(ModItems.HALO_PART.get());
         CompoundTag tag = stack.getOrCreateTag();
@@ -18,12 +17,11 @@ public class HaloPartItem extends Item {
         return stack;
     }
 
-    // ★これが欲しかったメソッドです
     public static int getPhaseFromStack(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         if (tag != null && tag.contains("Phase")) {
             return tag.getInt("Phase");
         }
-        return -1; // データがない場合
+        return -1; 
     }
 }

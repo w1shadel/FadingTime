@@ -53,9 +53,19 @@
   "tooltip.time_halo.ability.19": "§8§oあなたが瀕死に近づく時、時間は逆行していき、あなたのHP、満腹度は全てマックスにされます。",
   "tooltip.time_halo.ability.20": "§8§oすべてはやがて砂へと還りますが、あなたはその砂時計を回す唯一の権利を手にしました。",
 
+  "item.tutm.lunar_chrono_clock_time.desc": "§8§o時、泡沫、煉獄、全ては一つで、最後の因果に繋がっている。",
+  "item.tutm.lunar_chrono_clock_nether.desc": "§8§o終焉には泡沫とその力を握る者がいた、奈落にその魂を捧げた。",
+  "item.tutm.lunar_chrono_clock_end.desc": "§8§o「時の終着点とその因果の始まりに投げ入れろ、そうすれば道は開かれる。」",
+  "item.tutm.lunar_chrono_clock_charge.desc": "§8§o使徒は言った、「その時計を煉獄の高みに投げ捨てるべきである。」と",
+  "item.tutm.lunar_chrono_clock_time": "時の砂の力と泡沫のような一瞬と煉獄の炎によって鍛造された最後の月の時計",
+  "item.tutm.lunar_chrono_clock_nether": "煉獄の炎によって鍛造された最後の月の時計",
+  "item.tutm.lunar_chrono_clock_end": "泡沫のような一瞬と煉獄の炎によって鍛造された最後の月の時計",
+  "item.tutm.lunar_chrono_clock_charged": "チャージされた最後の月の時計",
+  "item.tutm.lunar_chrono_clock": "最後の月の時計",
+
   "tooltip.tutm.moon_phase": "今夜の月齢: %s",
   "tooltip.tutm.parts_collected": "§0§kFragments§r の収集率: %s/8",
-  "tooltip.tutm.hint_header": "深淵のササヤキ:",
+  "tooltip.tutm.hint_header": "【現在の啓示】",
   "tooltip.tutm.hint_completed": "この§0§kFragments§rは既に完了している。",
   "tooltip.tutm.hint.zombie": "§7満月の夜、飢えに沈みし肉の塊を砂へと還せ。",
   "tooltip.tutm.hint.skeleton": "§7欠けゆく月の下、虚無に鳴る白骨の共鳴を止めよ。",
@@ -65,5 +75,8 @@
   "tooltip.tutm.hint.enderman": "§7次元の狭間を彷徨う黒き影を、境界の彼方へ追放せよ。",
   "tooltip.tutm.hint.phantom": "§7夜空を舞う亡霊の叫びを、時の彼方で静めよ。",
   "tooltip.tutm.hint.wither_skeleton": "§7黒き骨の断罪者を、新月の深淵にて打ち砕け。",
-  "tooltip.tutm.hint.default": "§8時は淀んでいる…"
+  "tooltip.tutm.hint.default": "§8時は淀んでいる…",
+  "tooltip.tutm.all_parts_gathered": "§0我が子よ、断片なる力を集めなおすときが来た。",
+  "tooltip.tutm.lightning_hint_header": "§0§k 深淵に身を捧げよ、さすれば...",
+  "tooltip.tutm.lightning_hint_desc": "現世の深淵に等しき刻にその身と時計を天の怒りに捧げよ。"
 }

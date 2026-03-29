@@ -1,14 +1,15 @@
 package com.maxwell.tutm.common.logic.sacrifice;
 
-import com.maxwell.tutm.common.items.HaloPartItem;
+import com.maxwell.tutm.init.ModItems;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class SacrificeManager {
-    // 月齢ごとのターゲットMobリスト
+
     public static EntityType<?> getTargetForPhase(int phase) {
         return switch (phase) {
             case 0 -> EntityType.ZOMBIE;
@@ -37,8 +38,8 @@ public class SacrificeManager {
         };
     }
 
-    public static void dropPart(Level level, Vec3 pos, int phase) {
-        ItemEntity item = new ItemEntity(level, pos.x, pos.y, pos.z, HaloPartItem.createPart(phase));
+    public static void dropPart(Level level, Vec3 pos) {
+        ItemEntity item = new ItemEntity(level, pos.x, pos.y, pos.z,new ItemStack(ModItems.HALO_PART.get()));
         level.addFreshEntity(item);
     }
 
@@ -46,4 +47,5 @@ public class SacrificeManager {
         int phase = level.getMoonPhase();
         return entity.getType() == getTargetForPhase(phase);
     }
+
 }

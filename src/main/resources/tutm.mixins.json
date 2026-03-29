@@ -16,7 +16,8 @@
     "ChunkMapAccessor",
     "TrackedEntityAccessor",
     "EntityRenderDispatcherTimeStopMixin",
-    "LivingEntityAccessor"
+    "LivingEntityAccessor",
+    "RaidMixin"
   ],
   "client": [
   ],
