@@ -40,5 +40,11 @@
     "sounds": [
       "tutm:laser_burst"
     ]
+  },
+  "boss_music": {
+    "subtitle": "subtitles.tutm.laser_burst",
+    "sounds": [
+      "tutm:boss_music"
+    ]
   }
 }

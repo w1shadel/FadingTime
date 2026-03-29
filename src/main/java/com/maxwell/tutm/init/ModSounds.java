@@ -25,4 +25,6 @@ public class ModSounds {
             () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "laser_burst")));
     public static final RegistryObject<SoundEvent> LASER_CHARGE = SOUND_EVENTS.register("laser_charge",
             () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "laser_charge")));
+    public static final RegistryObject<SoundEvent> BOSS_MUSIC = SOUND_EVENTS.register("boss_music",
+            () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TUTM.MODID, "boss_music")));
 }

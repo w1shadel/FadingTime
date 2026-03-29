@@ -1,6 +1,7 @@
 package com.maxwell.tutm.client.gui;
 
 import com.maxwell.tutm.TUTM;
+import com.maxwell.tutm.client.BossMusicInstance;
 import com.maxwell.tutm.common.network.UpdateBossBarPacket;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -25,19 +26,33 @@ public class CustomBossBarManager {
     private static float maxHealth = 1;
     private static Component bossName = Component.empty();
     private static boolean isSecondForm = false;
-
+    private static BossMusicInstance currentMusic = null;
     private static int currentVanillaBossBarBottomY = 12;
 
     public static void handleUpdatePacket(UpdateBossBarPacket packet) {
         shouldDisplay = packet.shouldDisplay();
+
         if (shouldDisplay) {
             currentHealth = packet.getCurrentHealth();
             maxHealth = packet.getMaxHealth();
             bossName = packet.getBossName();
             isSecondForm = packet.isSecond();
+            startBossMusic();
+        } else {
+         currentMusic = null;
         }
     }
-
+    private static void startBossMusic() {
+        Minecraft mc = Minecraft.getInstance();
+        if (currentMusic == null || !mc.getSoundManager().isActive(currentMusic)) {
+            currentMusic = new BossMusicInstance();
+            mc.getSoundManager().play(currentMusic);
+        }
+    }
+    public static boolean getShouldDisplay()
+    {
+        return shouldDisplay;
+    }
     @SubscribeEvent
     public static void onPreRenderBossBar(RenderGuiOverlayEvent.Pre event) {
         if (event.getOverlay().id().equals(VanillaGuiOverlay.BOSS_EVENT_PROGRESS.id())) {
