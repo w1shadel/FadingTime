@@ -98,6 +98,7 @@
   "key.tutm.execute": "Exercising Time Abilities",
   "key.tutm.select": "Selecting Time Abilities",
   "creativetab.tutm_tab": "Fading Time",
+  "effect.tutm.time_disorder": "Time constraint",
   "death.attack.tutm.time": "%1$s's time was carved away and rendered as if it never existed.",
   "death.attack.tutm.time.player": "%1$s's time was carved away by %2$s and rendered as if it never existed.",
   "death.attack.tutm.laser": "%1$s's time was carved away and rendered as if it never existed.",

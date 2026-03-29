@@ -52,14 +52,25 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private int teleportCooldown = 0;
     private int divineWaveCooldown = 0;
     private int timeStopCooldown = 200;
-    private long lastManualTick = -1L;
+    private long lastRealWorldTime = 0;
+    public void absoluteRealTimeTick(long currentRealTime) {
 
-    public void forceTick() {
-        long currentTick = this.level().getGameTime();
-        if (this.lastManualTick == currentTick) return;
-        this.lastManualTick = currentTick;
+        if (currentRealTime - this.lastRealWorldTime < 50) {
+            return;
+        }
+        this.lastRealWorldTime = currentRealTime;
+
         if (!this.isRemoved()) {
+
             this.tick();
+
+            if (this.level().isClientSide) {
+                this.xo = this.getX();
+                this.yo = this.getY();
+                this.zo = this.getZ();
+                this.yRotO = this.getYRot();
+                this.xRotO = this.getXRot();
+            }
         }
     }
     public The_Ultimate_TimeManagerEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
@@ -162,6 +173,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     @Override
     public void tick() {
         super.tick();
+
         if (this.level().isClientSide()) {
             this.idleAnimationState.startIfStopped(this.tickCount);
         }
@@ -183,12 +195,8 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             this.yHeadRot = yaw;
             this.setYBodyRot(yaw);
             this.yRotO = yaw;
-            System.out.println("YRot: " + this.getYRot());
-            System.out.println("HeadRot: " + this.yHeadRot);
         }
-
     }
-
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
@@ -262,11 +270,15 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     }
     private void handleFlightMovement(LivingEntity target) {
         orbitAngle += isSecondForm() ? 0.08 : 0.04;
-
         double radius = 8.0 + Math.sin(this.tickCount * 0.05) * 4.0;
         double targetX = target.getX() + Math.cos(orbitAngle) * radius;
         double targetZ = target.getZ() + Math.sin(orbitAngle) * radius;
-        double targetY = target.getY() + 6.0 + Math.sin(this.tickCount * 0.1) * 2.0;
+
+        double baseHeight = target.getY();
+        if (!(target instanceof The_Ultimate_TimeManagerEntity) && target.onGround()) {
+            baseHeight += 6.0;
+        }
+        double targetY = baseHeight + Math.sin(this.tickCount * 0.1) * 2.0;
 
         double speed = isSecondForm() ? 0.25 : 0.15;
 
@@ -275,7 +287,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             targetY = target.getY() + 2.0;
             double evasionRadius = radius + Math.sin(this.tickCount * 0.4) * 6.0;
             double evasionAngle = orbitAngle + Math.cos(this.tickCount * 0.3) * 2.0;
-
             targetX = target.getX() + Math.cos(evasionAngle) * evasionRadius;
             targetZ = target.getZ() + Math.sin(evasionAngle) * evasionRadius;
             speed *= 1.8;
@@ -286,6 +297,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         this.setDeltaMovement(this.getDeltaMovement().add(moveVec.normalize().scale(speed)));
         this.setDeltaMovement(this.getDeltaMovement().multiply(0.8, 0.8, 0.8));
         this.lookAt(target, 30.0F, 30.0F);
+
         double dist = this.distanceTo(target);
         teleportCooldown--;
         if (teleportCooldown <= 0) {
@@ -299,23 +311,37 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             }
         }
     }
+
     private void shootConstantLaser(LivingEntity target) {
         Vec3 targetPos = target.getBoundingBox().getCenter();
         double distance = this.distanceTo(target);
-        double leadTime = distance * 0.6;
         Vec3 targetVel = target.getDeltaMovement();
-        Vec3 predictedPos = targetPos.add(
-                targetVel.x * leadTime,
-                targetVel.y * leadTime,
-                targetVel.z * leadTime
-        );
-        double spread = isSecondForm() ? 0.2 : 0.8;
-        predictedPos = predictedPos.add(
-                (random.nextDouble() - 0.5) * spread,
-                (random.nextDouble() - 0.5) * spread,
-                (random.nextDouble() - 0.5) * spread
-        );
-        TemporalLaserEntity laser = new TemporalLaserEntity(this.level(), this, predictedPos, 0);
-        this.level().addFreshEntity(laser);
+
+        double leadTime = distance * 0.4;
+        Vec3 predictedPos = targetPos.add(targetVel.scale(leadTime));
+
+        Vec3 lookDir = this.getLookAngle();
+        Vec3 spawnPos = this.getEyePosition().subtract(lookDir.scale(5.0));
+
+        int totalLasers = isSecondForm() ? 6 : 4;
+
+        for (int i = 0; i < totalLasers; i++) {
+            TemporalLaserEntity laser;
+
+            if (i == 0) {
+                laser = new TemporalLaserEntity(this.level(), this, spawnPos, targetPos, 0);
+                laser.setTrackingTarget(target); 
+            } else {
+                double spread = isSecondForm() ? 2.5 : 1.5;
+                Vec3 spreadPos = predictedPos.add(
+                        (random.nextDouble() - 0.5) * spread * (distance * 0.1),
+                        (random.nextDouble() - 0.5) * spread * (distance * 0.1),
+                        (random.nextDouble() - 0.5) * spread * (distance * 0.1)
+                );
+                laser = new TemporalLaserEntity(this.level(), this, spawnPos, spreadPos, 0);
+            }
+
+            this.level().addFreshEntity(laser);
+        }
     }
 }

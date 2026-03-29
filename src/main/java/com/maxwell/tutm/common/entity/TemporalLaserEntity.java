@@ -36,7 +36,7 @@ public class TemporalLaserEntity extends Entity {
     private static final EntityDataAccessor<Vector3f> LASER_DIR = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.BOOLEAN);
     private Entity owner;
-
+    private static final EntityDataAccessor<Integer> TRACKING_TARGET_ID = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.INT);
     public TemporalLaserEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
@@ -94,12 +94,17 @@ public class TemporalLaserEntity extends Entity {
         this.entityData.define(AGE, 0);
         this.entityData.define(LASER_DIR, new Vector3f(0, 0, 0));
         this.entityData.define(STACKED, false);
+        this.entityData.define(TRACKING_TARGET_ID, -1);
     }
 
     public int getLaserAge() {
         return this.entityData.get(AGE);
     }
-
+    public void setTrackingTarget(Entity target) {
+        if (target != null) {
+            this.entityData.set(TRACKING_TARGET_ID, target.getId());
+        }
+    }
     public Vec3 getLaserDirection() {
         Vector3f v = this.entityData.get(LASER_DIR);
         return new Vec3(v.x(), v.y(), v.z());
@@ -116,6 +121,23 @@ public class TemporalLaserEntity extends Entity {
         }
         super.tick();
         int age = getLaserAge();
+        if (!this.level().isClientSide && age < (CHARGE_TIME - 2)) {
+            int targetId = this.entityData.get(TRACKING_TARGET_ID);
+            if (targetId != -1) {
+                Entity target = this.level().getEntity(targetId);
+                if (target != null) {
+                    Vec3 targetPos = target.getBoundingBox().getCenter();
+                    Vec3 dir = targetPos.subtract(this.position()).normalize();
+                    this.entityData.set(LASER_DIR, dir.toVector3f());
+                    double dx = targetPos.x - this.getX();
+                    double dy = targetPos.y - this.getY();
+                    double dz = targetPos.z - this.getZ();
+                    double dXZ = Math.sqrt(dx * dx + dz * dz);
+                    this.setYRot((float) (Mth.atan2(dz, dx) * (180D / Math.PI)) - 90F);
+                    this.setXRot((float) -(Mth.atan2(dy, dXZ) * (180D / Math.PI)));
+                }
+            }
+        }
         if (this.entityData.get(STACKED)) {
             this.entityData.set(STACKED, false);
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
