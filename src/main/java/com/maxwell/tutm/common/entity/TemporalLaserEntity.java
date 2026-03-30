@@ -1,6 +1,7 @@
 package com.maxwell.tutm.common.entity;
 
 import com.maxwell.tutm.client.renderer.TemporalLaserRenderer;
+import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
 import com.maxwell.tutm.common.util.EntityHelper;
@@ -30,8 +31,8 @@ import java.util.List;
         renderer = "com.maxwell.tutm.client.renderer.TemporalLaserRenderer"
 )
 public class TemporalLaserEntity extends Entity {
-    public static final int CHARGE_TIME = 18;
-    public static final int DURATION = 38;
+    public static int getChargeTime() { return ModConfig.TEMPORAL_LASER_CHARGE_TIME.get(); }
+    public static int getDuration() { return ModConfig.TEMPORAL_LASER_DURATION.get(); }
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Vector3f> LASER_DIR = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.BOOLEAN);
@@ -121,7 +122,7 @@ public class TemporalLaserEntity extends Entity {
         }
         super.tick();
         int age = getLaserAge();
-        if (!this.level().isClientSide && age < (CHARGE_TIME - 2)) {
+        if (!this.level().isClientSide && age < (getChargeTime() - 2)) {
             int targetId = this.entityData.get(TRACKING_TARGET_ID);
             if (targetId != -1) {
                 Entity target = this.level().getEntity(targetId);
@@ -147,17 +148,17 @@ public class TemporalLaserEntity extends Entity {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSounds.LASER_CHARGE.get(), SoundSource.HOSTILE, 0.5F, 2.0F);
         }
-        if (age == CHARGE_TIME) {
+        if (age == getChargeTime()) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     ModSounds.LASER_BURST.get(), SoundSource.HOSTILE, 0.8F, 1.5F);
         }
         this.entityData.set(AGE, age + 1);
-        if (age >= CHARGE_TIME && age < DURATION) {
+        if (age >= getChargeTime() && age < getDuration()) {
             if (!this.level().isClientSide) {
                 applyDamageTrace();
             }
         }
-        if (age >= DURATION) {
+        if (age >= getDuration()) {
             this.discard();
         }
     }
@@ -166,7 +167,8 @@ public class TemporalLaserEntity extends Entity {
         Vec3 start = this.position();
         Vec3 dir = getLaserDirection();
         java.util.Set<LivingEntity> hitInThisTick = new java.util.HashSet<>();
-        for (int i = 0; i < 64; i++) {
+        int range = ModConfig.TEMPORAL_LASER_RANGE.get().intValue();
+        for (int i = 0; i < range; i++) {
             Vec3 checkPos = start.add(dir.scale(i));
             AABB area = new AABB(
                     checkPos.x - 0.5, checkPos.y - 0.8, checkPos.z - 0.5,
@@ -176,8 +178,8 @@ public class TemporalLaserEntity extends Entity {
             for (LivingEntity target : targets) {
                 if (hitInThisTick.contains(target)) continue;
                 if (!(this.owner instanceof The_Ultimate_TimeManagerEntity && target == this.owner)) {
-                    DamageSource laserSource = ModDamageTypes.getLaserDamageSource(this.level(), this.owner);
-                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, 10, laserSource);
+                    DamageSource laserSource = ModDamageTypes.getLaserDamageSource(this.level(), this.owner, this);
+                    EntityHelper.applyAbsoluteTimeAttack(target, this.owner, ModConfig.TEMPORAL_LASER_DAMAGE.get().floatValue(), laserSource);
                     hitInThisTick.add(target);
                 }
             }

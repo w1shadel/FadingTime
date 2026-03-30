@@ -22,13 +22,13 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
                        PoseStack pose, MultiBufferSource buffer, int packedLight) {
         int age = entity.getWaveAge();
         float rawRadius = entity.getCurrentRadius();
-        float radius = rawRadius + (rawRadius > 0 ? (1.0f / DivineWaveEntity.EXPAND_TICKS * DivineWaveEntity.MAX_RADIUS) * partialTick : 0);
-        radius = Math.min(radius, DivineWaveEntity.MAX_RADIUS);
+        float radius = rawRadius + (rawRadius > 0 ? (1.0f / DivineWaveEntity.getExpandTicks() * DivineWaveEntity.getMaxRadius()) * partialTick : 0);
+        radius = Math.min(radius, DivineWaveEntity.getMaxRadius());
         float alpha;
-        if (age < DivineWaveEntity.EXPAND_TICKS) {
+        if (age < DivineWaveEntity.getExpandTicks()) {
             alpha = 0.35f;
         } else {
-            float fadeProgress = (float) (age - DivineWaveEntity.EXPAND_TICKS) / DivineWaveEntity.FADE_TICKS;
+            float fadeProgress = (float) (age - DivineWaveEntity.getExpandTicks()) / DivineWaveEntity.getFadeTicks();
             alpha = 0.35f * (1.0f - fadeProgress);
         }
         if (alpha <= 0) return;

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:gold_block"
+    },
+    "Y": {
+      "item": "tutm:time_sand"
+    }
+  },
+  "pattern": [
+    " # ",
+    "#Y#",
+    " # "
+  ],
+  "result": {
+    "item": "tutm:chrono_clock"
+  },
+  "show_notification": true
+}

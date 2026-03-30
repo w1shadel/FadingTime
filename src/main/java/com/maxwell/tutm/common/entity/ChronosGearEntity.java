@@ -1,11 +1,14 @@
 package com.maxwell.tutm.common.entity;
 
 import com.maxwell.tutm.client.renderer.ChronosGearRenderer;
+import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
 import com.maxwell.tutm.common.util.EntityHelper;
+import com.maxwell.tutm.init.ModDamageTypes;
 import com.maxwell.tutm.init.ModEntities;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -26,24 +29,26 @@ import java.util.List;
         renderer =  "com.maxwell.tutm.client.renderer.ChronosGearRenderer"
 )
 public class ChronosGearEntity extends Entity {
-    public static final int WAIT_TICKS = 40;
-    public static final int BOUNCE_TICKS = 20;
-    public static final int MAX_FLY_TICKS = 60;
+    public static int getWaitTicks() { return ModConfig.CHRONOS_GEAR_WAIT_TICKS.get(); }
+    public static int getBounceTicks() { return ModConfig.CHRONOS_GEAR_BOUNCE_TICKS.get(); }
+    public static int getMaxFlyTicks() { return ModConfig.CHRONOS_GEAR_MAX_FLY_TICKS.get(); }
     public static final int STATE_WAITING = 0;
     public static final int STATE_FLYING = 1;
     public static final int STATE_BOUNCING = 2;
     private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(ChronosGearEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final int MAX_BOUNCES = 3;
+    public static int getMaxBounces() { return ModConfig.CHRONOS_GEAR_MAX_BOUNCES.get(); }
     private int state = STATE_WAITING;
     private int stateTimer = 0;
     private Entity owner;
     private int bounceCount = 0;
-
+    private LivingEntity target;
     public ChronosGearEntity(EntityType<?> type, Level level) {
         super(type, level);
-        this.noPhysics = false;
+        this.noPhysics = true;
     }
-
+    public void setTarget(LivingEntity target) {
+        this.target = target;
+    }
     public ChronosGearEntity(Level level, Entity owner, Vec3 spawnPos) {
         this(ModEntities.get(ChronosGearEntity.class), level);
         this.owner = owner;
@@ -90,7 +95,7 @@ public class ChronosGearEntity extends Entity {
 
     private void tickWaiting() {
         this.setDeltaMovement(Vec3.ZERO);
-        if (stateTimer >= WAIT_TICKS) {
+        if (stateTimer >= getWaitTicks()) {
             launchToTarget();
         }
     }
@@ -102,21 +107,17 @@ public class ChronosGearEntity extends Entity {
         this.setYRot(rotLerp(this.getYRot(), targetYaw, 20f));
         this.setXRot(rotLerp(this.getXRot(), targetPitch, 20f));
         this.move(MoverType.SELF, move);
-        if (this.horizontalCollision || this.verticalCollision) {
-            enterBounce();
-            return;
-        }
         checkEntityCollisions();
-        if (stateTimer >= MAX_FLY_TICKS) {
+        if (stateTimer >= getMaxFlyTicks()) {
             enterBounce();
         }
     }
 
     private void tickBouncing() {
         this.setDeltaMovement(Vec3.ZERO);
-        if (stateTimer >= BOUNCE_TICKS) {
+        if (stateTimer >= getBounceTicks()) {
             bounceCount++;
-            if (bounceCount >= MAX_BOUNCES) {
+            if (bounceCount >= getMaxBounces()) {
                 this.discard();
             } else {
                 launchToTarget();
@@ -126,17 +127,21 @@ public class ChronosGearEntity extends Entity {
 
     private void launchToTarget() {
         LivingEntity target = findTarget();
+        if (this.target == null || !this.target.isAlive()) {
+            this.target = findTarget();
+        }
+
         if (target == null) {
             this.discard();
             return;
         }
-        Vec3 targetPos = target.position().add(0, target.getEyeHeight() / 2.0, 0);
+        Vec3 targetPos = this.target.position().add(0, this.target.getEyeHeight() / 2.0, 0);
         Vec3 dir = targetPos.subtract(this.position()).normalize();
         double yaw = Math.toDegrees(Math.atan2(-dir.x, dir.z));
         double pitch = Math.toDegrees(Math.asin(dir.y));
         this.setYRot((float) yaw);
         this.setXRot((float) pitch);
-        double speed = 1.0;
+        double speed = ModConfig.CHRONOS_GEAR_SPEED.get();
         this.setDeltaMovement(dir.scale(speed));
         state = STATE_FLYING;
         stateTimer = 0;
@@ -155,7 +160,8 @@ public class ChronosGearEntity extends Entity {
         for (LivingEntity t : targets) {
             if (t == owner || t instanceof The_Ultimate_TimeManagerEntity) continue;
             if (t instanceof Player p && (p.isCreative() || p.isSpectator())) continue;
-            EntityHelper.applyAbsoluteTimeAttack(t, owner, 10f);
+            DamageSource source = ModDamageTypes.getTimeDamageSource(this.level(), owner, this);
+            EntityHelper.applyAbsoluteTimeAttack(t, owner, ModConfig.CHRONOS_GEAR_DAMAGE.get().floatValue(), source);
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
         }
     }
@@ -168,7 +174,12 @@ public class ChronosGearEntity extends Entity {
     }
 
     private LivingEntity findTarget() {
-        return this.level().getNearestPlayer(this.getX(), this.getY(), this.getZ(), 64, false);
+        List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(64.0D),
+                entity -> entity != owner && entity.isAlive() && !(entity instanceof Player p && (p.isCreative() || p.isSpectator()))
+        );
+        return list.stream()
+                .min(java.util.Comparator.comparingDouble(e -> e.distanceToSqr(this)))
+                .orElse(null);
     }
 
     public int getGearState() {

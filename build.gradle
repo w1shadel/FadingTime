@@ -89,6 +89,7 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("curse.maven:jade-324717:5672013")
+    implementation fg.deobf("curse.maven:no-sugar-1476611:7822847")
     implementation fg.deobf("curse.maven:curios-309927:6418456")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }

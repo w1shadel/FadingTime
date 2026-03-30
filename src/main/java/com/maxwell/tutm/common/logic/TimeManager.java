@@ -1,6 +1,7 @@
 package com.maxwell.tutm.common.logic;
 
 import com.maxwell.tutm.common.capability.TimeDataCapability;
+import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.network.S2CSyncTimePacket;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
@@ -127,9 +128,9 @@ public class TimeManager {
 
     private static double calculateCost(PlayerTimeMode mode, int factor) {
         return switch (mode) {
-            case ACCELERATING -> 5.0 * factor;
-            case STOPPED -> 100.0;
-            case REWINDING -> 150.0;
+            case ACCELERATING -> ModConfig.COST_ACCELERATION.get() * factor;
+            case STOPPED -> ModConfig.COST_TIME_STOP.get();
+            case REWINDING -> ModConfig.COST_REWIND.get();
             default -> 0.0;
         };
     }

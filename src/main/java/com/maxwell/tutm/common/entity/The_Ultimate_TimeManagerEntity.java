@@ -1,6 +1,7 @@
 package com.maxwell.tutm.common.entity;
 
 import com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer;
+import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.entity.ai.ChronosGearGoal;
 import com.maxwell.tutm.common.entity.ai.LaserOctaBurstGoal;
 import com.maxwell.tutm.common.logic.BossTimeManager;
@@ -63,7 +64,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         if (!this.isRemoved()) {
 
             this.tick();
-
+            this.aiStep();
             if (this.level().isClientSide) {
                 this.xo = this.getX();
                 this.yo = this.getY();
@@ -114,7 +115,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                         200,
                         1
                 );
-                timeStopCooldown = 600;
+                timeStopCooldown = ModConfig.BOSS_TIME_STOP_COOLDOWN.get();
             }
         }
         if (this.getTarget() == null || !this.getTarget().isAlive()) {
@@ -142,7 +143,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             if (divineWaveCooldown <= 0) {
                 DivineWaveEntity wave = new DivineWaveEntity(this.level(), this);
                 this.level().addFreshEntity(wave);
-                divineWaveCooldown = isSecondForm() ? 400 : 600;
+                divineWaveCooldown = isSecondForm() ? ModConfig.BOSS_DIVINE_WAVE_COOLDOWN_P2.get() : ModConfig.BOSS_DIVINE_WAVE_COOLDOWN_P1.get();
             }
         }
         super.aiStep();
@@ -195,6 +196,18 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             this.yHeadRot = yaw;
             this.setYBodyRot(yaw);
             this.yRotO = yaw;
+        }
+    }
+
+    @Override
+    public void onAddedToWorld() {
+        super.onAddedToWorld();
+        if (!this.level().isClientSide) {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(ModConfig.BOSS_MAX_HEALTH.get());
+            this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(ModConfig.BOSS_ATTACK_DAMAGE.get());
+            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(ModConfig.BOSS_MOVEMENT_SPEED.get());
+            this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(ModConfig.BOSS_FOLLOW_RANGE.get());
+            this.getAttribute(Attributes.FLYING_SPEED).setBaseValue(ModConfig.BOSS_FLYING_SPEED.get());
         }
     }
     @Override

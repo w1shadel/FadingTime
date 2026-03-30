@@ -38,8 +38,8 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
         VertexConsumer builder = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
         float baseRadius = 1.0F;
-        if (age < TemporalLaserEntity.CHARGE_TIME) {
-            float progress = age / (float) TemporalLaserEntity.CHARGE_TIME;
+        if (age < TemporalLaserEntity.getChargeTime()) {
+            float progress = age / (float) TemporalLaserEntity.getChargeTime();
             float easeProgress = Mth.sin(progress * (float) Math.PI / 2);
             float alpha = 0.3F + Mth.sin(age * 0.8F) * 0.4F;
             if (TimeManager.isTimeStopped()) alpha = 0.8F;
@@ -55,8 +55,8 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
             renderHollowPolygon(builder, mat, distD, radD, 8, 0.08F, alpha, -age * 0.5F);
 
         } else {
-            float beamDuration = (float) (TemporalLaserEntity.DURATION - TemporalLaserEntity.CHARGE_TIME);
-            float beamAlpha = Mth.clamp(1.0F - (age - TemporalLaserEntity.CHARGE_TIME) / beamDuration, 0, 1);
+            float beamDuration = (float) (TemporalLaserEntity.getDuration() - TemporalLaserEntity.getChargeTime());
+            float beamAlpha = Mth.clamp(1.0F - (age - TemporalLaserEntity.getChargeTime()) / beamDuration, 0, 1);
             if (beamAlpha > 0) {
                 drawCrossedQuads(builder, mat, 0.8F, 64.0F, 0.7f, 0.0f, 1.0f, beamAlpha * 0.6f);
                 drawCrossedQuads(builder, mat, 0.3F, 64.0F, 0.9f, 0.6f, 1.0f, beamAlpha);

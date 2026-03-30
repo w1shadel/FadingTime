@@ -1,6 +1,6 @@
 package com.maxwell.tutm.common.entity;
 
-import com.maxwell.tutm.client.renderer.DivineWaveRenderer;
+import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
 import com.maxwell.tutm.init.ModEffects;
 import com.maxwell.tutm.init.ModEntities;
@@ -32,9 +32,9 @@ import java.util.UUID;
         renderer =  "com.maxwell.tutm.client.renderer.DivineWaveRenderer"
 )
 public class DivineWaveEntity extends Entity {
-    public static final int MAX_RADIUS = 60;
-    public static final int EXPAND_TICKS = 60;
-    public static final int FADE_TICKS = 10;
+    public static int getMaxRadius() { return ModConfig.DIVINE_WAVE_MAX_RADIUS.get(); }
+    public static int getExpandTicks() { return ModConfig.DIVINE_WAVE_EXPAND_TICKS.get(); }
+    public static int getFadeTicks() { return ModConfig.DIVINE_WAVE_FADE_TICKS.get(); }
     private static final EntityDataAccessor<Integer> AGE =
             SynchedEntityData.defineId(DivineWaveEntity.class, EntityDataSerializers.INT);
     private final Set<UUID> alreadyHit = new HashSet<>();
@@ -63,8 +63,8 @@ public class DivineWaveEntity extends Entity {
 
     public float getCurrentRadius() {
         int age = getWaveAge();
-        if (age >= EXPAND_TICKS) return MAX_RADIUS;
-        return (float) age / EXPAND_TICKS * MAX_RADIUS;
+        if (age >= getExpandTicks()) return getMaxRadius();
+        return (float) age / getExpandTicks() * getMaxRadius();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class DivineWaveEntity extends Entity {
         super.tick();
         int age = getWaveAge();
         this.entityData.set(AGE, age + 1);
-        if (age >= EXPAND_TICKS + FADE_TICKS) {
+        if (age >= getExpandTicks() + getFadeTicks()) {
             this.discard();
             return;
         }
@@ -99,7 +99,10 @@ public class DivineWaveEntity extends Entity {
     }
 
     private void applyWaveEffect(LivingEntity target) {
-        int duration = 200 + this.level().random.nextInt(141);
+        int min = ModConfig.DIVINE_WAVE_EFFECT_DURATION_MIN.get();
+        int max = ModConfig.DIVINE_WAVE_EFFECT_DURATION_MAX.get();
+        int range = Math.max(1, max - min + 1);
+        int duration = min + this.level().random.nextInt(range);
         target.addEffect(new MobEffectInstance(MobEffects.POISON, duration, 0, false, true, true));
         target.addEffect(new MobEffectInstance(MobEffects.WITHER, duration, 0, false, true, true));
         target.addEffect(new MobEffectInstance(ModEffects.TIME_DISORDER.get(), duration, 0, false, true, true));

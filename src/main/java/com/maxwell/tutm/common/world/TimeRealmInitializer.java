@@ -17,7 +17,6 @@ public class TimeRealmInitializer {
         templateOpt.ifPresent(template -> {
             StructurePlaceSettings settings = new StructurePlaceSettings();
             template.placeInWorld(level, pos, pos, settings, level.random, 2);
-            System.out.println("Placed structure " + structurePath + " at " + pos);
         });
     }
 }
