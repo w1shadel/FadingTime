@@ -2,6 +2,7 @@ package com.maxwell.tutm.mixin;
 
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.logic.*;
+import com.maxwell.tutm.common.util.CurioUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -37,9 +38,9 @@ public abstract class LevelTimeManagerMixin {
                 : TimeManager.getPlayerAccelerationFactor(entity);
         boolean isImmune = false;
         if (isAbsoluteStop) {
-            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity);
+            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity) || (entity instanceof LivingEntity living && CurioUtil.hasHalo(living));
         } else if (isBossStopping) {
-            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity);
+            isImmune = (entity instanceof The_Ultimate_TimeManagerEntity) || (entity instanceof LivingEntity living && CurioUtil.hasHalo(living));
         } else if (isPlayerStopping) {
             isImmune = TimeManager.isImmune(entity, level);
         }
