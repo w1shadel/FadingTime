@@ -77,7 +77,7 @@ public abstract class LevelTimeManagerMixin {
                 }
             }
         }
-        if (factor > 1) {
+        if (factor > 1 && bMode != BossTimeMode.ACCELERATING) {
             if (isImmune || entity instanceof Player) {
                 tutm$isProcessing = true;
                 for (int i = 0; i < factor - 1; i++) {

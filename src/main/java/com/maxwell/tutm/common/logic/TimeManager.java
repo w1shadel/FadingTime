@@ -144,8 +144,11 @@ public class TimeManager {
 
     public static void tickImmuneEntitiesOnly(ServerLevel level) {
         var entityMap = ((ChunkMapAccessor) level.getChunkSource().chunkMap).getEntityMap();
-        ((ServerLevelAccessor) level).getEntityTickList().forEach(entity -> {
-            if (entity.isRemoved()) return;
+        java.util.List<Entity> toTick = new java.util.ArrayList<>();
+        ((ServerLevelAccessor) level).getEntityTickList().forEach(toTick::add);
+
+        for (Entity entity : toTick) {
+            if (entity.isRemoved()) continue;
             if (isImmune(entity, level)) {
                 level.guardEntityTick(level::tickNonPassenger, entity);
                 Object tracked = entityMap.get(entity.getId());
@@ -156,7 +159,7 @@ public class TimeManager {
                 entity.setPos(entity.xo, entity.yo, entity.zo);
                 entity.setDeltaMovement(0, 0, 0);
             }
-        });
+        }
     }
 
     public static int getPlayerAccelerationFactor(Entity e) {
@@ -194,8 +197,10 @@ public class TimeManager {
                 return true;
             }
             return p.getCapability(TimeDataCapability.INSTANCE).map(data -> {
-                if (isTimeStopped(level)) {
-                    return data.tier >= 2 && data.currentCost > 0;
+                BossTimeMode bMode = BossTimeManager.getModeFor(level);
+                if (bMode != BossTimeMode.NORMAL || isTimeStopped(level)) {
+                    int requiredTier = (bMode == BossTimeMode.ABSOLUTE_STOP) ? 2 : 1;
+                    return data.tier >= requiredTier && data.currentCost > 0;
                 }
                 return data.currentCost > 0;
             }).orElse(false);

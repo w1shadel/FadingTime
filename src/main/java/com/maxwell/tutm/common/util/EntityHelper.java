@@ -43,7 +43,7 @@ public class EntityHelper {
             if (!success || healthAfter >= healthBefore) {
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
                 INSTABILITY_COUNT.put(uuid, count);
-                if (count >= 10) {
+                if (count >= 30) {
                     if (!CurioUtil.hasHalo(serverPlayer)) {
                         executeTimelineCorrection(serverPlayer);
                     }
@@ -82,7 +82,7 @@ public class EntityHelper {
             if (!success || healthAfter >= healthBefore) {
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
                 INSTABILITY_COUNT.put(uuid, count);
-                if (count >= 10) {
+                if (count >= 30) {
                     if (!CurioUtil.hasHalo(serverPlayer)) {
                         executeTimelineCorrection(serverPlayer);
                     }
@@ -128,7 +128,7 @@ public class EntityHelper {
         } else {
             player.teleportTo(respawnLevel, respawnPos.getX() + 0.5, respawnPos.getY(), respawnPos.getZ() + 0.5, respawnAngle, 0.0F);
         }
-        player.sendSystemMessage(Component.literal("§0[SYSTEM_ERROR]\n§dDetected an unchangeable existence.\n§cYour armor cannot protect you from Time. §eTimeline corrected."));
+        player.sendSystemMessage(Component.literal("§0[SYSTEM_ERROR] §dDetected an unchangeable existence.\n§cYour armor cannot protect you from Time. §eTimeline corrected. §k###"));
         respawnLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 }

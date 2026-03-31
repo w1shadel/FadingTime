@@ -32,9 +32,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @AutoRegisterEntity(
         name = "the_ultimate_time_manager",
@@ -42,6 +41,7 @@ import java.util.UUID;
         renderer = "com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer"
 )
 public class The_Ultimate_TimeManagerEntity extends Monster {
+    public static final Set<The_Ultimate_TimeManagerEntity> ACTIVE_BOSSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final EntityDataAccessor<Boolean> IS_ALLY = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SECOND_FORM = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
     public final AnimationState idleAnimationState = new AnimationState();
@@ -55,16 +55,14 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private int timeStopCooldown = 200;
     private long lastRealWorldTime = 0;
     public void absoluteRealTimeTick(long currentRealTime) {
-
         if (currentRealTime - this.lastRealWorldTime < 50) {
             return;
         }
         this.lastRealWorldTime = currentRealTime;
 
         if (!this.isRemoved()) {
-
-            this.tick();
-            this.aiStep();
+            // Note: super.tick() already calls aiStep() via baseTick()
+            super.tick();
             if (this.level().isClientSide) {
                 this.xo = this.getX();
                 this.yo = this.getY();
@@ -111,7 +109,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             if (this.random.nextFloat() < 0.05F) {
                 BossTimeManager.requestBossMode(
                         (ServerLevel) this.level(),
-                        BossTimeMode.STOPPED,
+                        isSecondForm() ? BossTimeMode.ABSOLUTE_STOP : BossTimeMode.STOPPED,
                         200,
                         1
                 );
@@ -203,11 +201,20 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     public void onAddedToWorld() {
         super.onAddedToWorld();
         if (!this.level().isClientSide) {
+            ACTIVE_BOSSES.add(this);
             this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(ModConfig.BOSS_MAX_HEALTH.get());
             this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(ModConfig.BOSS_ATTACK_DAMAGE.get());
             this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(ModConfig.BOSS_MOVEMENT_SPEED.get());
             this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(ModConfig.BOSS_FOLLOW_RANGE.get());
             this.getAttribute(Attributes.FLYING_SPEED).setBaseValue(ModConfig.BOSS_FLYING_SPEED.get());
+        }
+    }
+
+    @Override
+    public void onRemovedFromWorld() {
+        super.onRemovedFromWorld();
+        if (!this.level().isClientSide) {
+            ACTIVE_BOSSES.remove(this);
         }
     }
     @Override

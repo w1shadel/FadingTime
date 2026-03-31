@@ -37,6 +37,12 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
         }
         VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
+
+        // 幾何学回転サークル
+        float circleAlpha = 0.5f * (1.0f + Mth.sin(timer * 0.1f));
+        drawGeometricCircle(vc, mat, 1.3f, 6, 0.04f, timer * 2.0f, 1.0f, 1.0f, 1.0f, circleAlpha);
+        drawGeometricCircle(vc, mat, 1.1f, 8, 0.02f, -timer * 1.5f, 0.8f, 0.9f, 1.0f, circleAlpha * 0.7f);
+
         switch (state) {
             case ChronosGearEntity.STATE_WAITING -> renderWaiting(pose, vc, mat, timer);
             case ChronosGearEntity.STATE_FLYING -> renderFlying(pose, vc, mat, timer);
@@ -161,5 +167,18 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
     @Override
     public ResourceLocation getTextureLocation(ChronosGearEntity entity) {
         return new ResourceLocation("minecraft", "textures/misc/white.png");
+    }
+
+    private void drawGeometricCircle(VertexConsumer vc, Matrix4f mat, float radius, int sides, float thickness, float rotation, float r, float g, float b, float a) {
+        float step = (float) (Math.PI * 2.0 / sides);
+        float inner = radius - thickness;
+        for (int i = 0; i < sides; i++) {
+            float a1 = i * step + rotation, a2 = (i + 1) * step + rotation;
+            float x1o = Mth.cos(a1) * radius, y1o = Mth.sin(a1) * radius;
+            float x2o = Mth.cos(a2) * radius, y2o = Mth.sin(a2) * radius;
+            float x1i = Mth.cos(a1) * inner, y1i = Mth.sin(a1) * inner;
+            float x2i = Mth.cos(a2) * inner, y2i = Mth.sin(a2) * inner;
+            drawQuad(vc, mat, x1i, y1i, 0, x2i, y2i, 0, x2o, y2o, 0, x1o, y1o, 0, r, g, b, a, 0, 0, 1);
+        }
     }
 }

@@ -14,7 +14,9 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 
 public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(TUTM.MODID, "textures/entity/tutm.png");
@@ -39,6 +41,56 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
     @Override
     public void render(The_Ultimate_TimeManagerEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
         super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
+
+        float age = (float) pEntity.tickCount + pPartialTicks;
+        boolean second = pEntity.isSecondForm();
+        float r = second ? 1.0f : 1.0f;
+        float g = second ? 0.1f : 0.9f;
+        float b = second ? 0.2f : 0.4f;
+
+        pPoseStack.pushPose();
+        // 足元のグリッドエフェクト
+        VertexConsumer vc = pBuffer.getBuffer(RenderType.entityTranslucentEmissive(ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/white.png")));
+        Matrix4f mat = pPoseStack.last().pose();
+        drawFootGrid(vc, mat, 1.5f, 8, age * 0.5f, r, g, b, 0.4f);
+
+        // 背後の時計リング
+        pPoseStack.translate(0, 1.2, 0.3);
+        pPoseStack.mulPose(Axis.XP.rotationDegrees(90));
+        drawClockRing(vc, pPoseStack.last().pose(), 0.8f, 12, age * 2.0f, r, g, b, 0.6f);
+        drawClockRing(vc, pPoseStack.last().pose(), 0.6f, 6, -age * 1.0f, r, g, b, 0.4f);
+        
+        pPoseStack.popPose();
+    }
+
+    private void drawFootGrid(VertexConsumer vc, Matrix4f mat, float radius, int lines, float rotation, float r, float g, float b, float a) {
+        float step = radius * 2.0f / lines;
+        for (int i = 0; i <= lines; i++) {
+            float offset = -radius + i * step;
+            // X方向の線
+            drawThinLine(vc, mat, -radius, 0.01f, offset, radius, 0.01f, offset, r, g, b, a);
+            // Z方向の線
+            drawThinLine(vc, mat, offset, 0.01f, -radius, offset, 0.01f, radius, r, g, b, a);
+        }
+    }
+
+    private void drawClockRing(VertexConsumer vc, Matrix4f mat, float radius, int sides, float rotation, float r, float g, float b, float a) {
+        float step = (float) (Math.PI * 2.0 / sides);
+        for (int i = 0; i < sides; i++) {
+            float angle = i * step + (float) Math.toRadians(rotation);
+            float inner = radius * 0.95f;
+            float x1 = Mth.cos(angle) * inner, y1 = Mth.sin(angle) * inner;
+            float x2 = Mth.cos(angle) * radius, y2 = Mth.sin(angle) * radius;
+            drawThinLine(vc, mat, x1, y1, 0, x2, y2, 0, r, g, b, a);
+        }
+    }
+
+    private void drawThinLine(VertexConsumer vc, Matrix4f mat, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a) {
+        float thickness = 0.02f;
+        vc.vertex(mat, x1, y1 - thickness, z1).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x2, y2 - thickness, z2).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x2, y2 + thickness, z2).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
+        vc.vertex(mat, x1, y1 + thickness, z1).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
     }
     @Override
     protected void setupRotations(The_Ultimate_TimeManagerEntity entity, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTicks) {

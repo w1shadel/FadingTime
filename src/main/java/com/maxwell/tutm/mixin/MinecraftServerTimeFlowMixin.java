@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,15 +27,9 @@ public abstract class MinecraftServerTimeFlowMixin {
 
     @Inject(method = "tickServer(Ljava/util/function/BooleanSupplier;)V", at = @At("HEAD"))
     private void tutm$onAbsoluteServerTick(BooleanSupplier pHasTimeLeft, CallbackInfo ci) {
-        MinecraftServer server = (MinecraftServer) (Object) this;
         long currentRealTime = Util.getMillis();
-
-        for (ServerLevel level : server.getAllLevels()) {
-            for (Entity entity : level.getAllEntities()) {
-                if (entity instanceof The_Ultimate_TimeManagerEntity boss) {
-                    boss.absoluteRealTimeTick(currentRealTime);
-                }
-            }
+        for (The_Ultimate_TimeManagerEntity boss : The_Ultimate_TimeManagerEntity.ACTIVE_BOSSES) {
+            boss.absoluteRealTimeTick(currentRealTime);
         }
     }
     @Redirect(
