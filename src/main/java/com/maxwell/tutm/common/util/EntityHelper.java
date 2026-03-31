@@ -129,6 +129,6 @@ public class EntityHelper {
             player.teleportTo(respawnLevel, respawnPos.getX() + 0.5, respawnPos.getY(), respawnPos.getZ() + 0.5, respawnAngle, 0.0F);
         }
         player.sendSystemMessage(Component.literal("§0[SYSTEM_ERROR]\n§dDetected an unchangeable existence.\n§cYour armor cannot protect you from Time. §eTimeline corrected."));
-         respawnLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
+        respawnLevel.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 }
