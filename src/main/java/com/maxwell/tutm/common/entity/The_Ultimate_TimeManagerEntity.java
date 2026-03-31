@@ -1,9 +1,6 @@
 package com.maxwell.tutm.common.entity;
 
-import com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer;
 import com.maxwell.tutm.common.config.ModConfig;
-import com.maxwell.tutm.common.entity.ai.ChronosGearGoal;
-import com.maxwell.tutm.common.entity.ai.LaserOctaBurstGoal;
 import com.maxwell.tutm.common.logic.BossTimeManager;
 import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
@@ -23,7 +20,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -48,10 +44,8 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private final Set<UUID> trackingPlayers = new HashSet<>();
     private float lastHealth;
     private boolean lastSecondFormState;
-    private int constantLaserTimer = 0;
-    private double orbitAngle = 0;
+    private boolean hasUsedSupernova = false;
     private int teleportCooldown = 0;
-    private int divineWaveCooldown = 0;
     private int timeStopCooldown = 200;
     private long lastRealWorldTime = 0;
     public void absoluteRealTimeTick(long currentRealTime) {
@@ -93,6 +87,34 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     }
 
     @Override
+    public boolean hurt(DamageSource source, float amount) {
+        // スーパーノヴァのチャージ中は完全無敵（ラストスタンドの絶対保証）
+        if (this.currentAttackState == AttackState.SUPERNOVA) {
+            return false;
+        }
+
+        // スーパーノヴァをまだ使っていない場合、致死ダメージを食いしばって強制発動する
+        if (!hasUsedSupernova) {
+            if (this.getHealth() - amount <= 1.0f) {
+                this.setHealth(1.0f);
+                this.currentAttackState = AttackState.SUPERNOVA;
+                this.stateTimer = 0;
+                this.hasUsedSupernova = true;
+                return false;
+            }
+        }
+
+        return super.hurt(source, amount);
+    }
+
+    private enum AttackState {
+        IDLE, LASER_BURST, DIVINE_WAVE, HOMING_SHOT, SUPERNOVA, CHRONOS_GEAR
+    }
+    private AttackState currentAttackState = AttackState.IDLE;
+    private int stateTimer = 0;
+    private int laserCount = 0;
+
+    @Override
     public void aiStep() {
         if (this.level().isClientSide) {
             super.aiStep();
@@ -104,6 +126,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         else if (healthPercent <= 0.50F) factor = 3;
         else if (healthPercent <= 0.75F) factor = 2;
         BossTimeManager.setAccelFactor(factor);
+
         timeStopCooldown--;
         if (!BossTimeManager.isTimeStopped() && timeStopCooldown <= 0 && this.getTarget() != null) {
             if (this.random.nextFloat() < 0.05F) {
@@ -116,35 +139,136 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                 timeStopCooldown = ModConfig.BOSS_TIME_STOP_COOLDOWN.get();
             }
         }
+
         if (this.getTarget() == null || !this.getTarget().isAlive()) {
             Player nearestPlayer = this.level().getNearestPlayer(this.getX(), this.getY(), this.getZ(), 64.0D, false);
             if (nearestPlayer != null && !nearestPlayer.isCreative() && !nearestPlayer.isSpectator()) {
                 this.setTarget(nearestPlayer);
             }
         }
+
         this.setNoGravity(true);
         LivingEntity target = this.getTarget();
+        
+        // 常に定期的にホーミングレーザー（魔法弾）を撃つ（スーパーノヴァ時以外）
+        if (target != null && currentAttackState != AttackState.SUPERNOVA) {
+            if (this.tickCount % 80 == 0) { // 4秒ごとに発射
+                TemporalHomingEntity ball = new TemporalHomingEntity(this.level(), this, target);
+                this.level().addFreshEntity(ball);
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 0.8F, 1.5F);
+            }
+        }
+        
+        // フライバフの付与（周囲のプレイヤー）
+        for (UUID uuid : this.trackingPlayers) {
+            Player p = this.level().getPlayerByUUID(uuid);
+            if (p != null) {
+                if (!p.isCreative() && !p.isSpectator() && !p.getAbilities().mayfly) {
+                    p.getAbilities().mayfly = true;
+                    p.onUpdateAbilities();
+                }
+            }
+        }
+        
         if (target != null) {
             handleFlightMovement(target);
-            constantLaserTimer++;
-            int fireRate = isSecondForm() ? 4 : 8;
-            if (constantLaserTimer >= fireRate) {
-                shootConstantLaser(target);
-                constantLaserTimer = 0;
-            }
+            updateAttackSequence(target);
         } else {
             double hoverY = Math.sin(this.tickCount * 0.1) * 0.02;
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.5, 0.0, 0.5).add(0, hoverY, 0));
-        }
-        if (!this.level().isClientSide) {
-            divineWaveCooldown--;
-            if (divineWaveCooldown <= 0) {
-                DivineWaveEntity wave = new DivineWaveEntity(this.level(), this);
-                this.level().addFreshEntity(wave);
-                divineWaveCooldown = isSecondForm() ? ModConfig.BOSS_DIVINE_WAVE_COOLDOWN_P2.get() : ModConfig.BOSS_DIVINE_WAVE_COOLDOWN_P1.get();
-            }
+            currentAttackState = AttackState.IDLE;
         }
         super.aiStep();
+    }
+
+
+    private void updateAttackSequence(LivingEntity target) {
+        stateTimer++;
+        
+        // HPが微量(2%以下)になったら強制的にスーパーノヴァモードへ突入（ラストスタンド）
+        if (!hasUsedSupernova && this.getHealth() <= Math.max(10.0f, this.getMaxHealth() * 0.02f)) {
+            currentAttackState = AttackState.SUPERNOVA;
+            stateTimer = 0;
+            hasUsedSupernova = true;
+            return;
+        }
+
+        switch (currentAttackState) {
+            case IDLE -> {
+                if (stateTimer > 40) {
+                    currentAttackState = AttackState.LASER_BURST;
+                    stateTimer = 0;
+                    laserCount = 0;
+                }
+            }
+            case LASER_BURST -> {
+                int fireRate = isSecondForm() ? 10 : 15;
+                if (stateTimer % fireRate == 0) {
+                    shootConstantLaser(target);
+                    laserCount++;
+                    if (laserCount >= 5) {
+                        currentAttackState = AttackState.DIVINE_WAVE;
+                        stateTimer = 0;
+                    }
+                }
+            }
+            case DIVINE_WAVE -> {
+                if (stateTimer == 10) {
+                    DivineWaveEntity wave = new DivineWaveEntity(this.level(), this);
+                    this.level().addFreshEntity(wave);
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.WITHER_SHOOT, net.minecraft.sounds.SoundSource.HOSTILE, 1.5F, 0.5F);
+                }
+                if (stateTimer > 40) {
+                    currentAttackState = AttackState.HOMING_SHOT;
+                    stateTimer = 0;
+                }
+            }
+            case HOMING_SHOT -> {
+                if (stateTimer % 15 == 0) {
+                    TemporalHomingEntity ball = new TemporalHomingEntity(this.level(), this, target);
+                    this.level().addFreshEntity(ball);
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.2F);
+                    if (stateTimer >= 45) {
+                        currentAttackState = AttackState.CHRONOS_GEAR; // 通常ローテは歯車へ直行
+                        stateTimer = 0;
+                    }
+                }
+            }
+            case SUPERNOVA -> {
+                if (stateTimer == 1) {
+                    // スーパーノヴァ召喚
+                    ChronosSupernovaEntity supernova = new ChronosSupernovaEntity(this.level(), this, this.getX(), this.getY() + 2.0, this.getZ());
+                    this.level().addFreshEntity(supernova);
+                    // 警告音（ウィザーのスポーン音などのド派手な音）
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.WITHER_SPAWN, net.minecraft.sounds.SoundSource.HOSTILE, 3.0F, 0.5F);
+                }
+                // チャージ中はボスが激しく回転しつつ静止する
+                this.setYRot(this.getYRot() + 20.0f);
+                this.yBodyRot = this.getYRot();
+                this.yHeadRot = this.getYRot();
+
+                if (stateTimer >= ChronosSupernovaEntity.CHARGE_TIME + 20) { // 爆発後少し待ってから次へ
+                    currentAttackState = AttackState.CHRONOS_GEAR;
+                    stateTimer = 0;
+                }
+            }
+
+            case CHRONOS_GEAR -> {
+                if (stateTimer == 1) {
+                    int gearCount = isSecondForm() ? 6 : 4;
+                    for (int i = 0; i < gearCount; i++) {
+                        double angle = i * (Math.PI * 2.0 / gearCount);
+                        ChronosGearEntity gear = new ChronosGearEntity(this.level(), this, this.position().add(Math.cos(angle)*4, 1.5, Math.sin(angle)*4));
+                        this.level().addFreshEntity(gear);
+                    }
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.HOSTILE, 1.5F, 1.5F);
+                }
+                if (stateTimer > 60) {
+                    currentAttackState = AttackState.IDLE;
+                    stateTimer = 0;
+                }
+            }
+        }
     }
 
     @Override
@@ -173,6 +297,27 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     public void tick() {
         super.tick();
 
+        if (!this.level().isClientSide) {
+            // 念のためのtickデスポーン判定（ボスバーから外れたが何らかの理由で残っている場合）
+            // ※召喚直後にすぐ消えないように100tick（5秒）の猶予を設ける
+            if (this.tickCount > 100 && this.trackingPlayers.isEmpty()) {
+                this.discard();
+                return;
+            }
+            // 200ブロック以内にプレイヤーが1人もいない場合（ディメンション移動や遠距離逃亡）、ボスは完全に消滅する
+            boolean hasNearby = false;
+            for (Player p : this.level().players()) {
+                if (p.distanceTo(this) < 200.0) {
+                    hasNearby = true;
+                    break;
+                }
+            }
+            if (!hasNearby) {
+                this.discard();
+                return;
+            }
+        }
+
         if (this.level().isClientSide()) {
             this.idleAnimationState.startIfStopped(this.tickCount);
         }
@@ -188,12 +333,15 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         }
         LivingEntity target = this.getTarget();
         if (target != null && !this.level().isClientSide) {
-            this.lookAt(target, 360.0F, 360.0F);
-            float yaw = Mth.wrapDegrees(this.getYRot());
-            this.setYRot(yaw);
-            this.yHeadRot = yaw;
-            this.setYBodyRot(yaw);
-            this.yRotO = yaw;
+            // スーパーノヴァ中は強制的な視点追従を行わない（超高速回転するため）
+            if (this.currentAttackState != AttackState.SUPERNOVA) {
+                this.lookAt(target, 15.0F, 15.0F); 
+                float yaw = Mth.wrapDegrees(this.getYRot());
+                this.setYRot(yaw);
+                this.yHeadRot = yaw;
+                this.setYBodyRot(yaw);
+                this.yRotO = yaw;
+            }
         }
     }
 
@@ -232,16 +380,30 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         if (!this.level().isClientSide) {
             this.trackingPlayers.remove(player.getUUID());
             sendBossBarPacket(player, false);
+            // プレイヤーが誰も自分を見ていないかつ召喚から5秒以上経過している場合は即座にデスポーンする
+            if (this.tickCount > 100 && this.trackingPlayers.isEmpty()) {
+                this.discard();
+            }
         }
     }
+
 
     @Override
     public void die(DamageSource cause) {
         super.die(cause);
         if (!this.level().isClientSide) {
             broadcastBossBarPacket(false);
+            for (UUID uuid : this.trackingPlayers) {
+                Player p = this.level().getPlayerByUUID(uuid);
+                if (p != null && !p.isCreative() && !p.isSpectator()) {
+                    p.getAbilities().mayfly = false;
+                    p.getAbilities().flying = false;
+                    p.onUpdateAbilities();
+                }
+            }
         }
     }
+
 
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
@@ -283,48 +445,55 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
 
     @Override
     public void registerGoals() {
-     this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-            this.goalSelector.addGoal(1, new LaserOctaBurstGoal(this));
-            this.goalSelector.addGoal(2, new ChronosGearGoal(this));
             this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
+
     private void handleFlightMovement(LivingEntity target) {
-        orbitAngle += isSecondForm() ? 0.08 : 0.04;
-        double radius = 8.0 + Math.sin(this.tickCount * 0.05) * 4.0;
-        double targetX = target.getX() + Math.cos(orbitAngle) * radius;
-        double targetZ = target.getZ() + Math.sin(orbitAngle) * radius;
-
-        double baseHeight = target.getY();
-        if (!(target instanceof The_Ultimate_TimeManagerEntity) && target.onGround()) {
-            baseHeight += 6.0;
-        }
-        double targetY = baseHeight + Math.sin(this.tickCount * 0.1) * 2.0;
-
-        double speed = isSecondForm() ? 0.25 : 0.15;
-
-        double heightDifference = this.getY() - target.getY();
-        if (heightDifference > 12.0) {
-            targetY = target.getY() + 2.0;
-            double evasionRadius = radius + Math.sin(this.tickCount * 0.4) * 6.0;
-            double evasionAngle = orbitAngle + Math.cos(this.tickCount * 0.3) * 2.0;
-            targetX = target.getX() + Math.cos(evasionAngle) * evasionRadius;
-            targetZ = target.getZ() + Math.sin(evasionAngle) * evasionRadius;
-            speed *= 1.8;
+        // 溜めや攻撃中はピタリと止まる
+        if (currentAttackState == AttackState.LASER_BURST) {
+            this.setDeltaMovement(this.getDeltaMovement().multiply(0.3, 0.3, 0.3));
+            return;
+        } else if (currentAttackState == AttackState.SUPERNOVA) {
+            // スーパーノヴァ中は絶対に動かないように完全に速度を0にする
+            this.setDeltaMovement(0, 0, 0);
+            return;
         }
 
-        Vec3 targetVec = new Vec3(targetX, targetY, targetZ);
-        Vec3 moveVec = targetVec.subtract(this.position());
-        this.setDeltaMovement(this.getDeltaMovement().add(moveVec.normalize().scale(speed)));
-        this.setDeltaMovement(this.getDeltaMovement().multiply(0.8, 0.8, 0.8));
-        this.lookAt(target, 30.0F, 30.0F);
+        // ウィザー風AI: ターゲットとの適切な距離を保ちつつ正面を取る
+        double distance = this.distanceTo(target);
+        double desiredDistance = isSecondForm() ? 10.0 : 14.0;
+        
+        Vec3 targetPos = target.position().add(0, target.getEyeHeight() + 3.0, 0); // ターゲットの少し上を目指す
+        Vec3 direction = targetPos.subtract(this.position()).normalize();
 
-        double dist = this.distanceTo(target);
+        // 速度を下げ、ぴったり張り付かない「ギリギリ」の速度に調整
+        double speed = isSecondForm() ? 0.15 : 0.08;
+
+        if (distance > desiredDistance + 3.0) {
+            // 近づく
+            this.setDeltaMovement(this.getDeltaMovement().add(direction.scale(speed)));
+        } else if (distance < desiredDistance - 3.0) {
+            // 離れる（後退する速度はさらに遅め）
+            this.setDeltaMovement(this.getDeltaMovement().add(direction.scale(-speed * 0.5)));
+        } else {
+            // ホバリング・僅かな左右揺れ
+            double strafe = Math.sin(this.tickCount * 0.05) * speed * 0.4;
+            Vec3 rightDir = direction.yRot((float)Math.PI / 2);
+            this.setDeltaMovement(this.getDeltaMovement().add(rightDir.scale(strafe)));
+        }
+
+        this.setDeltaMovement(this.getDeltaMovement().multiply(0.85, 0.85, 0.85));
+        
+        // ターゲットをジンワリと追従
+        this.lookAt(target, 15.0F, 15.0F);
+
+
         teleportCooldown--;
         if (teleportCooldown <= 0) {
-            if (dist > 32.0) {
+            if (distance > 32.0) {
                 this.moveTo(target.getX(), target.getY() + 6.0, target.getZ());
                 teleportCooldown = 100;
-            } else if (dist < 5.0) {
+            } else if (distance < 5.0) {
                 Vec3 behind = target.getLookAngle().reverse().scale(10);
                 this.moveTo(target.getX() + behind.x, target.getY() + 5.0, target.getZ() + behind.z);
                 teleportCooldown = 60;

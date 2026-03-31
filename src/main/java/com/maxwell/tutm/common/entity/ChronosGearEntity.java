@@ -81,6 +81,10 @@ public class ChronosGearEntity extends Entity {
             Vec3 move = this.getDeltaMovement();
             this.setPos(this.getX() + move.x, this.getY() + move.y, this.getZ() + move.z);
         } else {
+            if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
+                this.discard();
+                return;
+            }
             if (this.entityData.get(STACKED)) {
                 this.entityData.set(STACKED, false);
             }

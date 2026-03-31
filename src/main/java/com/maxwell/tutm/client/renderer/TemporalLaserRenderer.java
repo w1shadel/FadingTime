@@ -1,6 +1,7 @@
 package com.maxwell.tutm.client.renderer;
 
 import com.maxwell.tutm.common.entity.TemporalLaserEntity;
+import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -37,29 +38,31 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
         }
         VertexConsumer builder = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
-        float baseRadius = 1.0F;
+        float baseRadius = entity.getRadius();
         if (age < TemporalLaserEntity.getChargeTime()) {
             float progress = age / (float) TemporalLaserEntity.getChargeTime();
             float easeProgress = Mth.sin(progress * (float) Math.PI / 2);
             float alpha = 0.3F + Mth.sin(age * 0.8F) * 0.4F;
             if (TimeManager.isTimeStopped()) alpha = 0.8F;
-            renderHollowPolygon(builder, mat, 1.5F, baseRadius, 5, 0.1F, alpha, age * 2.0F);
+            // Charge rings scaled by radius
+            renderHollowPolygon(builder, mat, 1.5F, baseRadius, 5, 0.1F * baseRadius, alpha, age * 2.0F);
             float distB = Mth.lerp(easeProgress, 1.5F, 3.0F);
             float radB = Mth.lerp(easeProgress, baseRadius, baseRadius * 1.8F);
-            renderHollowPolygon(builder, mat, distB, radB, 6, 0.12F, alpha, -age * 1.5F);
+            renderHollowPolygon(builder, mat, distB, radB, 6, 0.12F * baseRadius, alpha, -age * 1.5F);
             float distC = Mth.lerp(easeProgress, 1.5F, 4.5F);
             float radC = Mth.lerp(easeProgress, baseRadius, baseRadius * 1.3F);
-            renderHollowPolygon(builder, mat, distC, radC, 7, 0.1F, alpha, age * 1.0F);
+            renderHollowPolygon(builder, mat, distC, radC, 7, 0.1F * baseRadius, alpha, age * 1.0F);
             float distD = Mth.lerp(easeProgress, 1.5F, 6.0F);
             float radD = Mth.lerp(easeProgress, baseRadius, baseRadius * 0.8F);
-            renderHollowPolygon(builder, mat, distD, radD, 8, 0.08F, alpha, -age * 0.5F);
+            renderHollowPolygon(builder, mat, distD, radD, 8, 0.08F * baseRadius, alpha, -age * 0.5F);
 
         } else {
+            // Beam phase
             float beamDuration = (float) (TemporalLaserEntity.getDuration() - TemporalLaserEntity.getChargeTime());
             float beamAlpha = Mth.clamp(1.0F - (age - TemporalLaserEntity.getChargeTime()) / beamDuration, 0, 1);
             if (beamAlpha > 0) {
-                drawCrossedQuads(builder, mat, 0.8F, 64.0F, 0.7f, 0.0f, 1.0f, beamAlpha * 0.6f);
-                drawCrossedQuads(builder, mat, 0.3F, 64.0F, 0.9f, 0.6f, 1.0f, beamAlpha);
+                drawCrossedQuads(builder, mat, 0.8F * baseRadius, 64.0F, 0.7f, 0.0f, 1.0f, beamAlpha * 0.6f);
+                drawCrossedQuads(builder, mat, 0.3F * baseRadius, 64.0F, 0.9f, 0.6f, 1.0f, beamAlpha);
             }
         }
         pose.popPose();

@@ -1,6 +1,5 @@
 package com.maxwell.tutm.common.entity;
 
-import com.maxwell.tutm.client.renderer.TemporalLaserRenderer;
 import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
@@ -36,6 +35,8 @@ public class TemporalLaserEntity extends Entity {
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Vector3f> LASER_DIR = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.VECTOR3);
     private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_SWEEP_MODE = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> RADIUS = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.FLOAT);
     private Entity owner;
     private static final EntityDataAccessor<Integer> TRACKING_TARGET_ID = SynchedEntityData.defineId(TemporalLaserEntity.class, EntityDataSerializers.INT);
     public TemporalLaserEntity(EntityType<?> type, Level level) {
@@ -47,6 +48,7 @@ public class TemporalLaserEntity extends Entity {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
         this.entityData.set(AGE, initialAge);
+        this.entityData.set(RADIUS, 1.0F); // 初期値
         Vec3 pos = owner.position().add(0, owner.getEyeHeight(), 0);
         this.setPos(pos.x, pos.y, pos.z);
         this.xo = pos.x;
@@ -71,6 +73,7 @@ public class TemporalLaserEntity extends Entity {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
         this.entityData.set(AGE, initialAge);
+        this.entityData.set(RADIUS, 1.0F); // 初期値
         this.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
         this.xo = spawnPos.x;
         this.yo = spawnPos.y;
@@ -96,6 +99,8 @@ public class TemporalLaserEntity extends Entity {
         this.entityData.define(LASER_DIR, new Vector3f(0, 0, 0));
         this.entityData.define(STACKED, false);
         this.entityData.define(TRACKING_TARGET_ID, -1);
+        this.entityData.define(IS_SWEEP_MODE, false);
+        this.entityData.define(RADIUS, 1.0F);
     }
 
     public int getLaserAge() {
@@ -105,6 +110,15 @@ public class TemporalLaserEntity extends Entity {
         if (target != null) {
             this.entityData.set(TRACKING_TARGET_ID, target.getId());
         }
+    }
+    public void setRadius(float radius) {
+        this.entityData.set(RADIUS, radius);
+    }
+    public float getRadius() {
+        return this.entityData.get(RADIUS);
+    }
+    public Entity getOwner() {
+        return this.owner;
     }
     public Vec3 getLaserDirection() {
         Vector3f v = this.entityData.get(LASER_DIR);
@@ -121,7 +135,14 @@ public class TemporalLaserEntity extends Entity {
             return;
         }
         super.tick();
+        if (!this.level().isClientSide) {
+            if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
+                this.discard();
+                return;
+            }
+        }
         int age = getLaserAge();
+
         if (!this.level().isClientSide && age < (getChargeTime() - 2)) {
             int targetId = this.entityData.get(TRACKING_TARGET_ID);
             if (targetId != -1) {
@@ -153,12 +174,15 @@ public class TemporalLaserEntity extends Entity {
                     ModSounds.LASER_BURST.get(), SoundSource.HOSTILE, 0.8F, 1.5F);
         }
         this.entityData.set(AGE, age + 1);
-        if (age >= getChargeTime() && age < getDuration()) {
+        
+        int maxDuration = getDuration();
+        
+        if (age >= getChargeTime() && age < maxDuration) {
             if (!this.level().isClientSide) {
                 applyDamageTrace();
             }
         }
-        if (age >= getDuration()) {
+        if (age >= maxDuration) {
             this.discard();
         }
     }
@@ -168,11 +192,12 @@ public class TemporalLaserEntity extends Entity {
         Vec3 dir = getLaserDirection();
         java.util.Set<LivingEntity> hitInThisTick = new java.util.HashSet<>();
         int range = ModConfig.TEMPORAL_LASER_RANGE.get().intValue();
-        for (int i = 0; i < range; i++) {
+        float radius = getRadius();
+        for (int i = 0; i < range; i += (int)Math.max(1, radius)) {
             Vec3 checkPos = start.add(dir.scale(i));
             AABB area = new AABB(
-                    checkPos.x - 0.5, checkPos.y - 0.8, checkPos.z - 0.5,
-                    checkPos.x + 0.5, checkPos.y + 0.8, checkPos.z + 0.5
+                    checkPos.x - radius, checkPos.y - radius, checkPos.z - radius,
+                    checkPos.x + radius, checkPos.y + radius, checkPos.z + radius
             );
             List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area);
             for (LivingEntity target : targets) {

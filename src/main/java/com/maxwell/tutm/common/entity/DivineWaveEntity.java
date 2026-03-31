@@ -70,6 +70,12 @@ public class DivineWaveEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        if (!this.level().isClientSide) {
+            if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
+                this.discard();
+                return;
+            }
+        }
         int age = getWaveAge();
         this.entityData.set(AGE, age + 1);
         if (age >= getExpandTicks() + getFadeTicks()) {
