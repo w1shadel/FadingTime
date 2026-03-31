@@ -33,8 +33,6 @@ public class Ultrakill {
     }
 
     public static void kill(Entity target) {
-        if (target instanceof Player) {
-        }
         if (target == null) return;
         unsafe.putBoolean(target, deadOffset, true);
         unsafe.putObject(target, removalReasonOffset, Entity.RemovalReason.DISCARDED);
