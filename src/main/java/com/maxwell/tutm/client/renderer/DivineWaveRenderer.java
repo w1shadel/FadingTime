@@ -44,8 +44,7 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
             float rLat = Mth.sin(phi) * radius;
             float a = alpha * (0.5f + 0.5f * Mth.sin(phi));
             drawRing(vc, mat, rLat, y, 32, thickness, r, g, b, a);
-            
-            // 幾何学グリッドライン
+
             if (lat % 2 == 0) {
                  drawRing(vc, mat, rLat, y, 64, 0.05f, 1.0f, 1.0f, 1.0f, alpha * 0.8f);
             }
@@ -53,8 +52,7 @@ public class DivineWaveRenderer extends EntityRenderer<DivineWaveEntity> {
         for (int lon = 0; lon < rings / 2; lon++) {
             float theta = (float) (Math.PI * lon / (rings / 2));
             drawTiltedRing(vc, mat, radius, 32, thickness * 0.6f, theta, rInner, gInner, bInner, alpha * 0.4f);
-            
-            // 縦方向のグリッド
+
             drawTiltedRing(vc, mat, radius, 64, 0.03f, theta + (float)Math.PI/4.0f, 1.0f, 1.0f, 1.0f, alpha * 0.6f);
         }
     }

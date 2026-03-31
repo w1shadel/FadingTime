@@ -48,7 +48,7 @@ public class TemporalLaserEntity extends Entity {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
         this.entityData.set(AGE, initialAge);
-        this.entityData.set(RADIUS, 1.0F); // 初期値
+        this.entityData.set(RADIUS, 1.0F); 
         Vec3 pos = owner.position().add(0, owner.getEyeHeight(), 0);
         this.setPos(pos.x, pos.y, pos.z);
         this.xo = pos.x;
@@ -73,7 +73,7 @@ public class TemporalLaserEntity extends Entity {
         this(ModEntities.get(TemporalLaserEntity.class), level);
         this.owner = owner;
         this.entityData.set(AGE, initialAge);
-        this.entityData.set(RADIUS, 1.0F); // 初期値
+        this.entityData.set(RADIUS, 1.0F); 
         this.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
         this.xo = spawnPos.x;
         this.yo = spawnPos.y;

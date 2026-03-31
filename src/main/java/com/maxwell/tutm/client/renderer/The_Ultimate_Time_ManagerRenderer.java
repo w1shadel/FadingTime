@@ -49,12 +49,11 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
         float b = second ? 0.2f : 0.4f;
 
         pPoseStack.pushPose();
-        // 足元のグリッドエフェクト (拡大: 1.5f -> 3.0f)
+
         VertexConsumer vc = pBuffer.getBuffer(RenderType.entityTranslucentEmissive(ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/white.png")));
         Matrix4f mat = pPoseStack.last().pose();
         drawFootGrid(vc, mat, 3.0f, 10, age * 0.5f, r, g, b, 0.4f);
 
-        // 背後の時計リング (拡大)
         pPoseStack.translate(0, 1.2, 0.3);
         pPoseStack.mulPose(Axis.XP.rotationDegrees(90));
         drawClockRing(vc, pPoseStack.last().pose(), 1.5f, 12, age * 2.0f, r, g, b, 0.6f);
@@ -67,9 +66,9 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
         float step = radius * 2.0f / lines;
         for (int i = 0; i <= lines; i++) {
             float offset = -radius + i * step;
-            // X方向の線
+
             drawThinLine(vc, mat, -radius, 0.01f, offset, radius, 0.01f, offset, r, g, b, a);
-            // Z方向の線
+
             drawThinLine(vc, mat, offset, 0.01f, -radius, offset, 0.01f, radius, r, g, b, a);
         }
     }

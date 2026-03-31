@@ -38,7 +38,6 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
         VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
 
-        // 幾何学回転サークル
         float circleAlpha = 0.5f * (1.0f + Mth.sin(timer * 0.1f));
         drawGeometricCircle(vc, mat, 1.3f, 6, 0.04f, timer * 2.0f, 1.0f, 1.0f, 1.0f, circleAlpha);
         drawGeometricCircle(vc, mat, 1.1f, 8, 0.02f, -timer * 1.5f, 0.8f, 0.9f, 1.0f, circleAlpha * 0.7f);

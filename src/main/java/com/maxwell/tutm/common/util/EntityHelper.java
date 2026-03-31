@@ -41,7 +41,7 @@ public class EntityHelper {
                 return;
             }
             if (!success || healthAfter >= healthBefore) {
-                // 絶対貫通ダメージのため、通常ダメージが通らなかった場合は直接ヘルスを減らす
+
                 serverPlayer.setHealth(Math.max(0, healthBefore - amount));
                 
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
@@ -83,7 +83,7 @@ public class EntityHelper {
                 return;
             }
             if (!success || healthAfter >= healthBefore) {
-                // 絶対貫通ダメージのため、強制的にHPを減らす
+
                 serverPlayer.setHealth(Math.max(0, healthBefore - amount));
                 
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;

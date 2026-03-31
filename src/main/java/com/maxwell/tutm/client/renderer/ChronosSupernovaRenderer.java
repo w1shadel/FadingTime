@@ -14,7 +14,7 @@ import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
 public class ChronosSupernovaRenderer extends EntityRenderer<ChronosSupernovaEntity> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("tutm", "textures/entity/supernova.png"); // 未作成でも光るだけでOKにする
+    private static final ResourceLocation TEXTURE = new ResourceLocation("tutm", "textures/entity/supernova.png"); 
 
     public ChronosSupernovaRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -38,18 +38,18 @@ public class ChronosSupernovaRenderer extends EntityRenderer<ChronosSupernovaEnt
         float r = 1.0f, g = 0.8f, b = 0.2f; 
 
         if (age < chargeTime) {
-            // 溜めフェーズ: 最序盤で急速に展開し、そのサイズを維持・脈動させる
-            float deployProgress = Math.min(1.0f, age / 20.0f); // 最初の1秒(20t)で完全展開
+
+            float deployProgress = Math.min(1.0f, age / 20.0f); 
             scale = Mth.lerp(deployProgress, 0.5f, 64.0f) + (float)Math.sin(age * 0.2) * 1.5f; 
-            // やがて赤黒くなるなどの警告色
+
             r = Mth.lerp(deployProgress, 0.5f, 1.0f);
             g = Mth.lerp(deployProgress, 1.0f, 0.2f);
             b = Mth.lerp(deployProgress, 1.0f, 0.0f);
-            alpha = 0.7f + (float)Math.sin(age * 0.5) * 0.1f; // やや半透明で維持
+            alpha = 0.7f + (float)Math.sin(age * 0.5) * 0.1f; 
         } else {
-            // 爆発フェーズ (極端な発光)
+
             float explosionProgress = (age - chargeTime) / explosionTime;
-            scale = 64.0f + explosionProgress * 16.0f; // さらに膨らむ
+            scale = 64.0f + explosionProgress * 16.0f; 
             alpha = Mth.clamp(1.0f - explosionProgress, 0.0f, 1.0f);
             r = 1.0f; g = 1.0f; b = 1.0f; 
         }

@@ -6,7 +6,6 @@ public class ModConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;
 
-    // Boss Settings
     public static final ForgeConfigSpec.DoubleValue BOSS_MAX_HEALTH;
     public static final ForgeConfigSpec.DoubleValue BOSS_ATTACK_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue BOSS_MOVEMENT_SPEED;
@@ -16,7 +15,6 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue BOSS_DIVINE_WAVE_COOLDOWN_P1;
     public static final ForgeConfigSpec.IntValue BOSS_DIVINE_WAVE_COOLDOWN_P2;
 
-    // Chronos Gear Settings
     public static final ForgeConfigSpec.DoubleValue CHRONOS_GEAR_DAMAGE;
     public static final ForgeConfigSpec.IntValue CHRONOS_GEAR_MAX_BOUNCES;
     public static final ForgeConfigSpec.IntValue CHRONOS_GEAR_WAIT_TICKS;
@@ -24,20 +22,17 @@ public class ModConfig {
     public static final ForgeConfigSpec.IntValue CHRONOS_GEAR_MAX_FLY_TICKS;
     public static final ForgeConfigSpec.DoubleValue CHRONOS_GEAR_SPEED;
 
-    // Divine Wave Settings
     public static final ForgeConfigSpec.IntValue DIVINE_WAVE_MAX_RADIUS;
     public static final ForgeConfigSpec.IntValue DIVINE_WAVE_EXPAND_TICKS;
     public static final ForgeConfigSpec.IntValue DIVINE_WAVE_FADE_TICKS;
     public static final ForgeConfigSpec.IntValue DIVINE_WAVE_EFFECT_DURATION_MIN;
     public static final ForgeConfigSpec.IntValue DIVINE_WAVE_EFFECT_DURATION_MAX;
 
-    // Temporal Laser Settings
     public static final ForgeConfigSpec.DoubleValue TEMPORAL_LASER_DAMAGE;
     public static final ForgeConfigSpec.IntValue TEMPORAL_LASER_CHARGE_TIME;
     public static final ForgeConfigSpec.IntValue TEMPORAL_LASER_DURATION;
     public static final ForgeConfigSpec.DoubleValue TEMPORAL_LASER_RANGE;
 
-    // Skill Cost Settings
     public static final ForgeConfigSpec.DoubleValue COST_ACCELERATION;
     public static final ForgeConfigSpec.DoubleValue COST_TIME_STOP;
     public static final ForgeConfigSpec.DoubleValue COST_REWIND;

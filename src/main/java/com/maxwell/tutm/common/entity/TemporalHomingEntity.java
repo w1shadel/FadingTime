@@ -67,18 +67,17 @@ public class TemporalHomingEntity extends Entity {
             }
 
             if (this.target != null) {
-                // 追尾ロジックの強化: 時間経過で加速
+
                 Vec3 targetPos = this.target.getBoundingBox().getCenter();
                 Vec3 dir = targetPos.subtract(this.position()).normalize();
                 int currentAge = this.getBallAge();
                 double speed = 0.4 + (currentAge * 0.015);
-                if (speed > 1.5) speed = 1.5; // 最高速度の制限
+                if (speed > 1.5) speed = 1.5; 
                 this.setDeltaMovement(this.getDeltaMovement().lerp(dir.scale(speed), 0.25));
             }
 
             this.setPos(this.getX() + this.getDeltaMovement().x, this.getY() + this.getDeltaMovement().y, this.getZ() + this.getDeltaMovement().z);
 
-            // 接触判定
             if (this.target != null && this.getBoundingBox().intersects(this.target.getBoundingBox())) {
                 onHit(this.target);
             }
@@ -93,7 +92,7 @@ public class TemporalHomingEntity extends Entity {
         DamageSource source = ModDamageTypes.getLaserDamageSource(this.level(), this.owner, this);
         float damage = ModConfig.TEMPORAL_LASER_DAMAGE.get().floatValue() * 1.5f;
         EntityHelper.applyAbsoluteTimeAttack(victim, this.owner, damage, source);
-        // ヒット時に時間関連のデバフ等を追加可能
+
         this.discard();
     }
 

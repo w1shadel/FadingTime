@@ -16,6 +16,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ import java.util.List;
 )
 public class ChronosSupernovaEntity extends Entity {
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(ChronosSupernovaEntity.class, EntityDataSerializers.INT);
-    public static final int CHARGE_TIME = 200; // 溜め時間大幅アップ（10秒）
+    public static final int CHARGE_TIME = 200; 
     public static final int EXPLOSION_TIME = 20;
 
     private LivingEntity owner;
@@ -57,7 +58,7 @@ public class ChronosSupernovaEntity extends Entity {
         super.tick();
 
         if (this.level().isClientSide) {
-           // Skip owner checks on client side
+
         } else {
             if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
                 this.discard();
@@ -70,7 +71,7 @@ public class ChronosSupernovaEntity extends Entity {
 
         if (this.level().isClientSide) {
             if (currentAge < CHARGE_TIME) {
-                // 吸い込みパーティクル
+
                 for (int i = 0; i < 5; i++) {
                     double angle = Math.random() * Math.PI * 2;
                     double radius = 10.0 + Math.random() * 5.0;
@@ -81,7 +82,7 @@ public class ChronosSupernovaEntity extends Entity {
                             -offsetX * 0.1, -1.0, -offsetZ * 0.1);
                 }
             } else if (currentAge == CHARGE_TIME) {
-                // 大爆発パーティクル
+
                 for (int i = 0; i < 200; i++) {
                     double speed = 2.0 + Math.random() * 4.0;
                     double theta = Math.random() * Math.PI * 2;
@@ -104,7 +105,7 @@ public class ChronosSupernovaEntity extends Entity {
     }
 
     private void detonate() {
-        double maxRadius = 64.0; // 恐るべき大爆発範囲
+        double maxRadius = 64.0; 
         AABB area = new AABB(
                 this.getX() - maxRadius, this.getY() - maxRadius, this.getZ() - maxRadius,
                 this.getX() + maxRadius, this.getY() + maxRadius, this.getZ() + maxRadius
@@ -114,16 +115,14 @@ public class ChronosSupernovaEntity extends Entity {
             if (target == this.owner) continue;
             double distance = this.distanceTo(target);
             if (distance <= maxRadius) {
-                // 距離減衰の超大ダメージ (最大200ダメージ)
+
                 float damage = (float) (200.0 * (1.0 - (distance / maxRadius)));
                 if (damage < 10.0f) damage = 10.0f;
                 Entity attacker = this.owner != null ? this.owner : this;
                 DamageSource source = ModDamageTypes.getLaserDamageSource(this.level(), attacker, this);
-                
-                // クリエイティブ/スペクテイターは無視
+
                 if (target instanceof net.minecraft.world.entity.player.Player player && (player.isCreative() || player.isSpectator())) continue;
 
-                // 回避不能にするため直接ダメージを入れてからHelperにも通す
                 target.hurt(source, damage);
                 if (this.owner != null) {
                     EntityHelper.applyAbsoluteTimeAttack(target, this.owner, damage, source);
@@ -131,7 +130,6 @@ public class ChronosSupernovaEntity extends Entity {
             }
         }
 
-        // デトネート時、全周囲へレーザーを乱れ撃つ（フィボナッチ球面上のランダムな方向に32本）
         if (!this.level().isClientSide && this.owner != null) {
             int numLasers = 32;
             double goldenRatio = (1 + Math.sqrt(5.0)) / 2.0;
@@ -145,7 +143,7 @@ public class ChronosSupernovaEntity extends Entity {
                 double dy = Math.sin(inclination) * Math.sin(azimuth);
                 double dz = Math.cos(inclination);
                 
-                Vec3 spawnPos = this.position().add(0, 1.5, 0); // 中心部から少し浮かす
+                Vec3 spawnPos = this.position().add(0, 1.5, 0); 
                 Vec3 targetPos = spawnPos.add(dx * 10, dy * 10, dz * 10);
                 
                 TemporalLaserEntity laser = new TemporalLaserEntity(this.level(), (LivingEntity) this.owner, spawnPos, targetPos, 0);

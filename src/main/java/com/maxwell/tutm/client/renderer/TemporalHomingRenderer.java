@@ -28,10 +28,8 @@ public class TemporalHomingRenderer extends EntityRenderer<TemporalHomingEntity>
         VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
 
-        // 中心のコア球体（テクスチャがホワイトなのでポリゴンで描画）
         drawSphere(vc, mat, 0.4f, 16, 0.8f, 0.4f, 1.0f, 0.8f);
 
-        // 回転する幾何学リング
         pose.mulPose(Axis.XP.rotationDegrees(age * 3.0f));
         drawRing(vc, mat, 0.6f, 6, 0.05f, age * 2.0f, 1.0f, 1.0f, 1.0f, 0.6f);
         
