@@ -56,10 +56,12 @@ public class BossTimeManager {
     private static void syncAll(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
+                double maxCost = data.getMaxCost(player);
+
                 TUTMPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
                         new S2CSyncTimePacket(
                                 data.currentCost,
-                                data.getMaxCost(),
+                                maxCost,
                                 data.tier,
                                 TimeManager.getCurrentMode(),
                                 currentMode,

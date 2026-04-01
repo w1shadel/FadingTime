@@ -30,6 +30,7 @@ public class TUTM {
         TUTMPacketHandler.register();
         ModSounds.SOUND_EVENTS.register(modEventBus);
         ModEffects.MOB_EFFECTS.register(modEventBus);
+        ModAttributes.ATTRIBUTES.register(modEventBus);
         ModCreativeModeTabs.CREATIVE_MODE_TABS.register(modEventBus);
         ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.SPEC);
         MinecraftForge.EVENT_BUS.register(this);

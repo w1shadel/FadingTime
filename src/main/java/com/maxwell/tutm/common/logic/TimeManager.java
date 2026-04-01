@@ -75,27 +75,34 @@ public class TimeManager {
     }
     public static void serverTick(ServerPlayer player) {
         player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
-            data.tier = CurioUtil.getEquippedTankTier(player);
+            // 1. ティアの更新と属性ベース値の同期
+            int newTier = CurioUtil.getEquippedTankTier(player);
+            if (data.tier != newTier) {
+                data.tier = newTier;
+                data.updateBaseAttributes(player); // ティアが変わったら属性の基本値を更新
+            }
+            // 2. Attributeから最新の最大コストを取得
+            double maxCost = data.getMaxCost(player);
             if (CurioUtil.hasHalo(player)) {
-                data.currentCost = data.getMaxCost();
+                data.currentCost = maxCost;
             } else {
                 if (currentMode != PlayerTimeMode.NORMAL) {
                     data.currentCost = Math.max(0, data.currentCost - calculateCost(currentMode, playerAccelFactor));
                     if (data.currentCost <= 0) forceNormalize();
                 } else {
                     if (data.tier > 0) {
-                        data.currentCost = Math.min(data.getMaxCost(), data.currentCost + 5000);
+                        double recovery = data.getRecoveryRate(player);
+                        data.currentCost = Math.min(maxCost, data.currentCost + recovery);
                     }
                 }
             }
             double stableBonus = Math.min(50.0, (double) player.tickCount / 2400.0);
             double wave = Math.sin(player.tickCount * 0.05);
-
             data.attackBonus = stableBonus + (wave * 1000.0);
             data.defenseBonus = (stableBonus / 2.0) + (wave * 500.0);
             TUTMPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
                     new S2CSyncTimePacket(
-                            data.currentCost, data.getMaxCost(), data.tier,
+                            data.currentCost, maxCost, data.tier,
                             currentMode, BossTimeManager.getMode(), BossTimeManager.getAccelFactor(),
                             playerAccelFactor, data.selectedSkill,
                             data.attackBonus, data.defenseBonus

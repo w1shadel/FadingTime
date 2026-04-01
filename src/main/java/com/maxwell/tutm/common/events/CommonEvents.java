@@ -33,25 +33,30 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = TUTM.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonEvents {
     private static final double VOID_Y = -10;
+    private static final double EXIT_Y = -64;
     private static final String STRUCTURE_PATH = "tutm_house";
     private static final BlockPos TARGET_POS = new BlockPos(666, 66, 666);
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || player.level().isClientSide()) return;
-        if (event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD)) {
-            if (player.level().dimension().equals(Level.END)) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) return;
+        ServerPlayer player = (ServerPlayer) event.player;
+        if (player.level().dimension().equals(Level.END)) {
+            if (player.getY() < VOID_Y) {
                 int playerAccel = TimeManager.getPlayerAccelerationFactor(player);
                 int bossAccel = BossTimeManager.getAccelFactor();
                 int totalAccel = Math.max(playerAccel, bossAccel);
                 if (totalAccel >= 8) {
-                    event.setCanceled(true);
                     moveToTimeRealm(player);
                 }
             }
         }
+        if (player.level().dimension().equals(TUTMDimensions.TIME_REALM_LEVEL_KEY)) {
+            if (player.getY() < EXIT_Y) {
+                returnToOverworld(player);
+            }
+        }
     }
-
     private static void moveToTimeRealm(ServerPlayer player) {
         ServerLevel destination = player.server.getLevel(TUTMDimensions.TIME_REALM_LEVEL_KEY);
         if (destination != null) {
@@ -61,12 +66,25 @@ public class CommonEvents {
             player.fallDistance = 0;
             player.setDeltaMovement(0, 0, 0);
             player.teleportTo(destination, destX, destY, destZ, 0, 0);
-            player.setInvulnerable(true);
             TimeRealmGenerator.generateArena(destination, new BlockPos(0, 60, 0));
             TimeRealmInitializer.placeStructure(destination, TARGET_POS, STRUCTURE_PATH);
         }
     }
+    private static void returnToOverworld(ServerPlayer player) {
+        ServerLevel overworld = player.server.getLevel(Level.OVERWORLD);
+        if (overworld != null) {
+            BlockPos respawnPos = player.getRespawnPosition();
+            if (respawnPos == null) {
+                respawnPos = overworld.getSharedSpawnPos();
+            }
 
+            player.fallDistance = 0;
+            player.setDeltaMovement(0, 0, 0);
+            player.teleportTo(overworld, respawnPos.getX() + 0.5, respawnPos.getY() + 1.0, respawnPos.getZ() + 0.5, player.getYRot(), player.getXRot());
+            player.setInvulnerable(false);
+            player.hurtMarked = true;
+        }
+    }
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
         Entity entity = event.getEntity();
