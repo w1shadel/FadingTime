@@ -41,9 +41,8 @@ public class EntityHelper {
                 return;
             }
             if (!success || healthAfter >= healthBefore) {
-
                 serverPlayer.setHealth(Math.max(0, healthBefore - amount));
-                
+                if (serverPlayer.getHealth() <= 0) {serverPlayer.die(source);}
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
                 INSTABILITY_COUNT.put(uuid, count);
                 if (count >= 30) {

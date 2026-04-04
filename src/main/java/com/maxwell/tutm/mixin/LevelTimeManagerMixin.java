@@ -5,20 +5,27 @@ import com.maxwell.tutm.common.logic.*;
 import com.maxwell.tutm.common.util.CurioUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @Mixin(value = Level.class)
 public abstract class LevelTimeManagerMixin {
+    @Shadow
+    @Final
+    private DamageSources damageSources;
     @Unique
     private static boolean tutm$isProcessing = false;
 
@@ -117,6 +124,7 @@ public abstract class LevelTimeManagerMixin {
                     living.setHealth(newHealth);
                 }
                 if (newHealth <= 0) {
+                    living.die(Objects.requireNonNull(living.getLastDamageSource()));
                     living.setRemoved(Entity.RemovalReason.KILLED);
                 }
                 living.getPersistentData().remove("TimeDebt");
