@@ -123,7 +123,6 @@ public class HaloAbilitiesEvent {
                     float baseDamage = event.getAmount();
                     float atkMultiplier = 1.0F + (float) (data.attackBonus / 100.0);
                     baseDamage *= atkMultiplier;
-                    event.setCanceled(true);
                     for (int i = 0; i < 10; i++) {
                         EntityHelper.applyAbsoluteTimeAttack(target, player, baseDamage);
                     }
