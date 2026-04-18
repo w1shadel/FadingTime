@@ -21,11 +21,15 @@ import java.util.UUID;
 
 @Mixin(Raid.class)
 public abstract class RaidMixin {
+    @Shadow
+    @Final
+    private ServerLevel level;
+    @Shadow
+    @Final
+    private Set<UUID> heroesOfTheVillage;
 
-    @Shadow @Final private ServerLevel level;
-    @Shadow @Final private Set<UUID> heroesOfTheVillage;
-    @Shadow public abstract boolean isVictory();
-
+    @Shadow
+    public abstract boolean isVictory();
 
     @Inject(
             method = {"tick"},
@@ -42,7 +46,6 @@ public abstract class RaidMixin {
                 Entity entity = this.level.getEntity(uuid);
                 if (entity instanceof ServerPlayer player && !player.isSpectator()) {
                     ItemStack reward = new ItemStack(ModItems.NIGHT_VICTORY_EMBLEM.get());
-
                     if (!player.getInventory().add(reward)) {
                         player.drop(reward, false);
                     }

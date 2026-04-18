@@ -44,6 +44,7 @@ public class TUTM {
     public static ResourceLocation getResourceLocation(String nameSpace, String location) {
         return new ResourceLocation(nameSpace, location);
     }
+
     private void clientSetup(final FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             CuriosRendererRegistry.register(

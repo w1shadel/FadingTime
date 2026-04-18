@@ -1,4 +1,7 @@
 {
+  "skill.tutm.acceleration": "时间加速",
+  "skill.tutm.stop": "时间静止",
+  "skill.tutm.rewind": "时间倒流",
   "item.tutm.debug": "某种很棒的调试矩阵",
   "item.tutm.chrono_tank1": "时械木杆・一式",
   "item.tutm.chrono_tank2": "时械木杆・二式",

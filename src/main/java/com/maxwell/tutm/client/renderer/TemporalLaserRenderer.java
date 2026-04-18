@@ -1,7 +1,6 @@
 package com.maxwell.tutm.client.renderer;
 
 import com.maxwell.tutm.common.entity.TemporalLaserEntity;
-import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -44,7 +43,6 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
             float easeProgress = Mth.sin(progress * (float) Math.PI / 2);
             float alpha = 0.3F + Mth.sin(age * 0.8F) * 0.4F;
             if (TimeManager.isTimeStopped()) alpha = 0.8F;
-
             renderHollowPolygon(builder, mat, 1.5F, baseRadius, 5, 0.1F * baseRadius, alpha, age * 2.0F);
             float distB = Mth.lerp(easeProgress, 1.5F, 3.0F);
             float radB = Mth.lerp(easeProgress, baseRadius, baseRadius * 1.8F);
@@ -57,7 +55,6 @@ public class TemporalLaserRenderer extends EntityRenderer<TemporalLaserEntity> {
             renderHollowPolygon(builder, mat, distD, radD, 8, 0.08F * baseRadius, alpha, -age * 0.5F);
 
         } else {
-
             float beamDuration = (float) (TemporalLaserEntity.getDuration() - TemporalLaserEntity.getChargeTime());
             float beamAlpha = Mth.clamp(1.0F - (age - TemporalLaserEntity.getChargeTime()) / beamDuration, 0, 1);
             if (beamAlpha > 0) {

@@ -24,20 +24,15 @@ public class TemporalHomingRenderer extends EntityRenderer<TemporalHomingEntity>
         float pt = TimeManager.isTimeStopped() ? 0.0F : partialTick;
         float age = (float) entity.getBallAge() + pt;
         pose.pushPose();
-
         VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
-
         drawSphere(vc, mat, 0.4f, 16, 0.8f, 0.4f, 1.0f, 0.8f);
-
         pose.mulPose(Axis.XP.rotationDegrees(age * 3.0f));
         drawRing(vc, mat, 0.6f, 6, 0.05f, age * 2.0f, 1.0f, 1.0f, 1.0f, 0.6f);
-        
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees(age * 5.0f));
         drawRing(vc, mat, 0.7f, 8, 0.03f, -age * 4.0f, 0.7f, 0.9f, 1.0f, 0.4f);
         pose.popPose();
-
         pose.popPose();
         super.render(entity, entityYaw, partialTick, pose, buffer, packedLight);
     }
@@ -49,23 +44,18 @@ public class TemporalHomingRenderer extends EntityRenderer<TemporalHomingEntity>
             for (int j = 0; j < rings * 2; j++) {
                 float theta1 = (float) (Math.PI * j / rings);
                 float theta2 = (float) (Math.PI * (j + 1) / rings);
-
                 float x1 = radius * Mth.sin(phi1) * Mth.cos(theta1);
                 float y1 = radius * Mth.cos(phi1);
                 float z1 = radius * Mth.sin(phi1) * Mth.sin(theta1);
-
                 float x2 = radius * Mth.sin(phi1) * Mth.cos(theta2);
                 float y2 = radius * Mth.cos(phi1);
                 float z2 = radius * Mth.sin(phi1) * Mth.sin(theta2);
-
                 float x3 = radius * Mth.sin(phi2) * Mth.cos(theta2);
                 float y3 = radius * Mth.cos(phi2);
                 float z3 = radius * Mth.sin(phi2) * Mth.sin(theta2);
-
                 float x4 = radius * Mth.sin(phi2) * Mth.cos(theta1);
                 float y4 = radius * Mth.cos(phi2);
                 float z4 = radius * Mth.sin(phi2) * Mth.sin(theta1);
-
                 drawQuad(vc, mat, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, r, g, b, a);
             }
         }

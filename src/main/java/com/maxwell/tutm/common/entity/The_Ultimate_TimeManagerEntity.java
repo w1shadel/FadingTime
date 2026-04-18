@@ -6,6 +6,7 @@ import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.network.TUTMPacketHandler;
 import com.maxwell.tutm.common.network.UpdateBossBarPacket;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
+import com.maxwell.tutm.init.ModEntities;
 import com.maxwell.tutm.init.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
@@ -28,7 +30,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @AutoRegisterEntity(
@@ -36,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
         width = 0.6f, height = 2.2f,
         renderer = "com.maxwell.tutm.client.renderer.The_Ultimate_Time_ManagerRenderer"
 )
-public class The_Ultimate_TimeManagerEntity extends Monster {
+public class The_Ultimate_TimeManagerEntity extends Monster implements ITUTMEntity {
     public static final Set<The_Ultimate_TimeManagerEntity> ACTIVE_BOSSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final EntityDataAccessor<Boolean> IS_ALLY = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SECOND_FORM = SynchedEntityData.defineId(The_Ultimate_TimeManagerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -45,17 +50,36 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     private float lastHealth;
     private boolean lastSecondFormState;
     private boolean hasUsedSupernova = false;
+    private int monolithSummonCooldown = 400;
     private int teleportCooldown = 0;
     private int timeStopCooldown = 200;
     private long lastRealWorldTime = 0;
+    private AttackState currentAttackState = AttackState.IDLE;
+    private int stateTimer = 0;
+    private int laserCount = 0;
+
+    public The_Ultimate_TimeManagerEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
+        this.lastHealth = -1.0F;
+        this.lastSecondFormState = false;
+        this.setNoGravity(true);
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Monster.createMonsterAttributes()
+                .add(Attributes.MAX_HEALTH, 1000.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.4D)
+                .add(Attributes.ATTACK_DAMAGE, 20.0D)
+                .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(Attributes.FLYING_SPEED, 0.6D);
+    }
+
     public void absoluteRealTimeTick(long currentRealTime) {
         if (currentRealTime - this.lastRealWorldTime < 50) {
             return;
         }
         this.lastRealWorldTime = currentRealTime;
-
         if (!this.isRemoved()) {
-
             super.tick();
             if (this.level().isClientSide) {
                 this.xo = this.getX();
@@ -66,20 +90,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             }
         }
     }
-    public The_Ultimate_TimeManagerEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
-        super(pEntityType, pLevel);
-        this.lastHealth = -1.0F;
-        this.lastSecondFormState = false;
-        this.setNoGravity(true);
-    }
-    public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 1000.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.4D)
-                .add(Attributes.ATTACK_DAMAGE, 20.0D)
-                .add(Attributes.FOLLOW_RANGE, 128.0D)
-                .add(Attributes.FLYING_SPEED, 0.6D);
-    }
 
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
@@ -88,30 +98,29 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-
-        if (this.currentAttackState == AttackState.SUPERNOVA) {
-            return false;
-        }
-
-        if (!hasUsedSupernova) {
-            if (this.getHealth() - amount <= 1.0f) {
-                this.setHealth(1.0f);
-                this.currentAttackState = AttackState.SUPERNOVA;
-                this.stateTimer = 0;
-                this.hasUsedSupernova = true;
+        if (!this.level().isClientSide) {
+            if (this.currentAttackState == AttackState.SUPERNOVA) {
                 return false;
             }
+            boolean hasMonolith = !this.level().getEntitiesOfClass(ChronosMonolithEntity.class,
+                    this.getBoundingBox().inflate(64.0D)).isEmpty();
+            if (hasMonolith) {
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                        SoundEvents.SHIELD_BLOCK, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 0.5F);
+                return false;
+            }
+            if (!hasUsedSupernova) {
+                if (this.getHealth() - amount <= 1.0f) {
+                    this.setHealth(1.0f);
+                    this.currentAttackState = AttackState.SUPERNOVA;
+                    this.stateTimer = 0;
+                    this.hasUsedSupernova = true;
+                    return false;
+                }
+            }
         }
-
         return super.hurt(source, amount);
     }
-
-    private enum AttackState {
-        IDLE, LASER_BURST, DIVINE_WAVE, HOMING_SHOT, SUPERNOVA, CHRONOS_GEAR
-    }
-    private AttackState currentAttackState = AttackState.IDLE;
-    private int stateTimer = 0;
-    private int laserCount = 0;
 
     @Override
     public void aiStep() {
@@ -119,76 +128,70 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             super.aiStep();
             return;
         }
-        float healthPercent = this.getHealth() / this.getMaxHealth();
-        int factor = 1;
-        if (healthPercent <= 0.25F) factor = 4;
-        else if (healthPercent <= 0.50F) factor = 3;
-        else if (healthPercent <= 0.75F) factor = 2;
-        BossTimeManager.setAccelFactor(factor);
-
-        timeStopCooldown--;
-        if (!BossTimeManager.isTimeStopped() && timeStopCooldown <= 0 && this.getTarget() != null) {
-            if (this.random.nextFloat() < 0.05F) {
-                BossTimeManager.requestBossMode(
-                        (ServerLevel) this.level(),
-                        isSecondForm() ? BossTimeMode.ABSOLUTE_STOP : BossTimeMode.STOPPED,
-                        200,
-                        1
-                );
-                timeStopCooldown = ModConfig.BOSS_TIME_STOP_COOLDOWN.get();
-            }
+        LivingEntity target = this.getTarget();
+        if (target != null && (target.isRemoved() || !target.isAlive())) {
+            this.setTarget(null);
+            target = null;
         }
-
-        if (this.getTarget() == null || !this.getTarget().isAlive()) {
+        if (target == null) {
             Player nearestPlayer = this.level().getNearestPlayer(this.getX(), this.getY(), this.getZ(), 64.0D, false);
             if (nearestPlayer != null && !nearestPlayer.isCreative() && !nearestPlayer.isSpectator()) {
                 this.setTarget(nearestPlayer);
+                target = nearestPlayer;
             }
         }
-
-        this.setNoGravity(true);
-        LivingEntity target = this.getTarget();
-
-        if (target != null && currentAttackState != AttackState.SUPERNOVA) {
-            if (this.tickCount % 80 == 0) { 
-                TemporalHomingEntity ball = new TemporalHomingEntity(this.level(), this, target);
-                this.level().addFreshEntity(ball);
-                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 0.8F, 1.5F);
+        if (target == null) {
+            if (currentAttackState != AttackState.IDLE) {
+                currentAttackState = AttackState.IDLE;
+                stateTimer = 0;
             }
-        }
-
-        for (UUID uuid : this.trackingPlayers) {
-            Player p = this.level().getPlayerByUUID(uuid);
-            if (p != null) {
-                if (!p.isCreative() && !p.isSpectator() && !p.getAbilities().mayfly) {
-                    p.getAbilities().mayfly = true;
-                    p.onUpdateAbilities();
-                }
-            }
-        }
-        
-        if (target != null) {
-            handleFlightMovement(target);
-            updateAttackSequence(target);
-        } else {
             double hoverY = Math.sin(this.tickCount * 0.1) * 0.02;
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.5, 0.0, 0.5).add(0, hoverY, 0));
-            currentAttackState = AttackState.IDLE;
+        } else {
+            handleFlightMovement(target);
+            updateAttackSequence(target);
+            if (currentAttackState != AttackState.SUPERNOVA && this.tickCount % 80 == 0) {
+                TemporalHomingEntity ball = new TemporalHomingEntity(this.level(), this, target);
+                this.level().addFreshEntity(ball);
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                        net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL,
+                        net.minecraft.sounds.SoundSource.HOSTILE, 0.8F, 1.5F);
+            }
+        }
+        float healthPercent = this.getHealth() / this.getMaxHealth();
+        int factor = (healthPercent <= 0.25F) ? 4 : (healthPercent <= 0.50F) ? 3 : (healthPercent <= 0.75F) ? 2 : 1;
+        BossTimeManager.setAccelFactor(factor);
+        timeStopCooldown--;
+        if (!BossTimeManager.isTimeStopped() && timeStopCooldown <= 0 && target != null) {
+            if (this.random.nextFloat() < 0.05F) {
+                BossTimeManager.requestBossMode((ServerLevel) this.level(),
+                        isSecondForm() ? BossTimeMode.ABSOLUTE_STOP : BossTimeMode.STOPPED, 200, 1);
+                timeStopCooldown = ModConfig.BOSS_TIME_STOP_COOLDOWN.get();
+            }
+        }
+        for (UUID uuid : this.trackingPlayers) {
+            Player p = this.level().getPlayerByUUID(uuid);
+            if (p != null && !p.isCreative() && !p.isSpectator() && !p.getAbilities().mayfly) {
+                p.getAbilities().mayfly = true;
+                p.onUpdateAbilities();
+            }
         }
         super.aiStep();
     }
 
-
     private void updateAttackSequence(LivingEntity target) {
+        if (target == null || target.isRemoved() || !target.isAlive()) {
+            currentAttackState = AttackState.IDLE;
+            stateTimer = 0;
+            return;
+        }
         stateTimer++;
-
         if (!hasUsedSupernova && this.getHealth() <= Math.max(10.0f, this.getMaxHealth() * 0.02f)) {
             currentAttackState = AttackState.SUPERNOVA;
             stateTimer = 0;
             hasUsedSupernova = true;
             return;
         }
-
         switch (currentAttackState) {
             case IDLE -> {
                 if (stateTimer > 40) {
@@ -225,36 +228,46 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                     this.level().addFreshEntity(ball);
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ILLUSIONER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.2F);
                     if (stateTimer >= 45) {
-                        currentAttackState = AttackState.CHRONOS_GEAR; 
+                        currentAttackState = AttackState.CHRONOS_GEAR;
                         stateTimer = 0;
                     }
                 }
             }
             case SUPERNOVA -> {
                 if (stateTimer == 1) {
-
                     ChronosSupernovaEntity supernova = new ChronosSupernovaEntity(this.level(), this, this.getX(), this.getY() + 2.0, this.getZ());
                     this.level().addFreshEntity(supernova);
-
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.WITHER_SPAWN, net.minecraft.sounds.SoundSource.HOSTILE, 3.0F, 0.5F);
                 }
-
                 this.setYRot(this.getYRot() + 20.0f);
                 this.yBodyRot = this.getYRot();
                 this.yHeadRot = this.getYRot();
-
-                if (stateTimer >= ChronosSupernovaEntity.CHARGE_TIME + 20) { 
+                if (stateTimer >= ChronosSupernovaEntity.CHARGE_TIME + 20) {
                     currentAttackState = AttackState.CHRONOS_GEAR;
                     stateTimer = 0;
                 }
             }
-
+            case SUMMON_MONOLITHS -> {
+                if (stateTimer == 1) {
+                    for (int i = 0; i < 4; i++) {
+                        double angle = i * (Math.PI / 2);
+                        Vec3 spawnPos = this.position().add(Math.cos(angle) * 8, 0, Math.sin(angle) * 8);
+                        ChronosMonolithEntity monolith = new ChronosMonolithEntity(ModEntities.get(ChronosMonolithEntity.class), this.level());
+                        monolith.setPos(spawnPos.x, this.getY(), spawnPos.z);
+                        this.level().addFreshEntity(monolith);
+                    }
+                }
+                if (stateTimer > 40) {
+                    currentAttackState = AttackState.IDLE;
+                    stateTimer = 0;
+                }
+            }
             case CHRONOS_GEAR -> {
                 if (stateTimer == 1) {
                     int gearCount = isSecondForm() ? 6 : 4;
                     for (int i = 0; i < gearCount; i++) {
                         double angle = i * (Math.PI * 2.0 / gearCount);
-                        ChronosGearEntity gear = new ChronosGearEntity(this.level(), this, this.position().add(Math.cos(angle)*4, 1.5, Math.sin(angle)*4));
+                        ChronosGearEntity gear = new ChronosGearEntity(this.level(), this, this.position().add(Math.cos(angle) * 4, 1.5, Math.sin(angle) * 4));
                         this.level().addFreshEntity(gear);
                     }
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), net.minecraft.sounds.SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.HOSTILE, 1.5F, 1.5F);
@@ -279,8 +292,9 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(IS_SECOND_FORM, false);
-        this.entityData.define(IS_ALLY, false); 
+        this.entityData.define(IS_ALLY, false);
     }
+
     public boolean isSecondForm() {
         return this.entityData.get(IS_SECOND_FORM);
     }
@@ -292,15 +306,11 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
     @Override
     public void tick() {
         super.tick();
-
         if (!this.level().isClientSide) {
-
-
             if (this.tickCount > 100 && this.trackingPlayers.isEmpty()) {
                 this.discard();
                 return;
             }
-
             boolean hasNearby = false;
             for (Player p : this.level().players()) {
                 if (p.distanceTo(this) < 200.0) {
@@ -313,7 +323,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                 return;
             }
         }
-
         if (this.level().isClientSide()) {
             this.idleAnimationState.startIfStopped(this.tickCount);
         }
@@ -329,9 +338,8 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         }
         LivingEntity target = this.getTarget();
         if (target != null && !this.level().isClientSide) {
-
             if (this.currentAttackState != AttackState.SUPERNOVA) {
-                this.lookAt(target, 15.0F, 15.0F); 
+                this.lookAt(target, 15.0F, 15.0F);
                 float yaw = Mth.wrapDegrees(this.getYRot());
                 this.setYRot(yaw);
                 this.yHeadRot = yaw;
@@ -361,6 +369,7 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             ACTIVE_BOSSES.remove(this);
         }
     }
+
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
@@ -376,13 +385,11 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         if (!this.level().isClientSide) {
             this.trackingPlayers.remove(player.getUUID());
             sendBossBarPacket(player, false);
-
             if (this.tickCount > 100 && this.trackingPlayers.isEmpty()) {
                 this.discard();
             }
         }
     }
-
 
     @Override
     public void die(DamageSource cause) {
@@ -399,7 +406,6 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
             }
         }
     }
-
 
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
@@ -441,46 +447,33 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
 
     @Override
     public void registerGoals() {
-            this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
     private void handleFlightMovement(LivingEntity target) {
-
         if (currentAttackState == AttackState.LASER_BURST) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.3, 0.3, 0.3));
             return;
         } else if (currentAttackState == AttackState.SUPERNOVA) {
-
             this.setDeltaMovement(0, 0, 0);
             return;
         }
-
         double distance = this.distanceTo(target);
         double desiredDistance = isSecondForm() ? 10.0 : 14.0;
-        
-        Vec3 targetPos = target.position().add(0, target.getEyeHeight() + 3.0, 0); 
+        Vec3 targetPos = target.position().add(0, target.getEyeHeight() + 3.0, 0);
         Vec3 direction = targetPos.subtract(this.position()).normalize();
-
         double speed = isSecondForm() ? 0.15 : 0.08;
-
         if (distance > desiredDistance + 3.0) {
-
             this.setDeltaMovement(this.getDeltaMovement().add(direction.scale(speed)));
         } else if (distance < desiredDistance - 3.0) {
-
             this.setDeltaMovement(this.getDeltaMovement().add(direction.scale(-speed * 0.5)));
         } else {
-
             double strafe = Math.sin(this.tickCount * 0.05) * speed * 0.4;
-            Vec3 rightDir = direction.yRot((float)Math.PI / 2);
+            Vec3 rightDir = direction.yRot((float) Math.PI / 2);
             this.setDeltaMovement(this.getDeltaMovement().add(rightDir.scale(strafe)));
         }
-
         this.setDeltaMovement(this.getDeltaMovement().multiply(0.85, 0.85, 0.85));
-
         this.lookAt(target, 15.0F, 15.0F);
-
-
         teleportCooldown--;
         if (teleportCooldown <= 0) {
             if (distance > 32.0) {
@@ -498,21 +491,16 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
         Vec3 targetPos = target.getBoundingBox().getCenter();
         double distance = this.distanceTo(target);
         Vec3 targetVel = target.getDeltaMovement();
-
         double leadTime = distance * 0.4;
         Vec3 predictedPos = targetPos.add(targetVel.scale(leadTime));
-
         Vec3 lookDir = this.getLookAngle();
         Vec3 spawnPos = this.getEyePosition().subtract(lookDir.scale(5.0));
-
         int totalLasers = isSecondForm() ? 6 : 4;
-
         for (int i = 0; i < totalLasers; i++) {
             TemporalLaserEntity laser;
-
             if (i == 0) {
                 laser = new TemporalLaserEntity(this.level(), this, spawnPos, targetPos, 0);
-                laser.setTrackingTarget(target); 
+                laser.setTrackingTarget(target);
             } else {
                 double spread = isSecondForm() ? 2.5 : 1.5;
                 Vec3 spreadPos = predictedPos.add(
@@ -522,8 +510,11 @@ public class The_Ultimate_TimeManagerEntity extends Monster {
                 );
                 laser = new TemporalLaserEntity(this.level(), this, spawnPos, spreadPos, 0);
             }
-
             this.level().addFreshEntity(laser);
         }
+    }
+
+    private enum AttackState {
+        IDLE, LASER_BURST, DIVINE_WAVE, HOMING_SHOT, SUPERNOVA, CHRONOS_GEAR, SUMMON_MONOLITHS
     }
 }

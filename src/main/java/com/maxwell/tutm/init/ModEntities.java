@@ -17,25 +17,20 @@ import java.util.Map;
 public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, TUTM.MODID);
-
     public static final Map<RegistryObject<? extends EntityType<?>>, String> RENDERER_MAP = new HashMap<>();
     private static final Map<Class<?>, RegistryObject<? extends EntityType<?>>> CLASS_TO_TYPE = new HashMap<>();
 
     public static void autoRegister() {
         String annotationDescriptor = Type.getDescriptor(AutoRegisterEntity.class);
         ModFileScanData scanData = ModList.get().getModFileById(TUTM.MODID).getFile().getScanResult();
-
         scanData.getAnnotations().stream()
                 .filter(data -> annotationDescriptor.equals(data.annotationType().getDescriptor()))
                 .forEach(data -> {
                     try {
-
                         String entityClassName = data.clazz().getClassName();
                         Class<?> clazz = Class.forName(entityClassName);
                         AutoRegisterEntity config = clazz.getAnnotation(AutoRegisterEntity.class);
-
                         if (config == null) return;
-
                         RegistryObject<EntityType<?>> reg = ENTITIES.register(config.name(), () ->
                                 EntityType.Builder.of((type, level) -> {
                                             try {
@@ -48,9 +43,7 @@ public class ModEntities {
                                         .sized(config.width(), config.height())
                                         .build(config.name())
                         );
-
                         CLASS_TO_TYPE.put(clazz, reg);
-
                         if (!config.renderer().isEmpty()) {
                             RENDERER_MAP.put(reg, config.renderer());
                         }

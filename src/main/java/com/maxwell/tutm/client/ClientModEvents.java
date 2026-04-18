@@ -31,7 +31,6 @@ public class ClientModEvents {
         ModEntities.RENDERER_MAP.forEach((reg, rendererClassName) -> {
             try {
                 Class<?> rendererClass = Class.forName(rendererClassName);
-
                 event.registerEntityRenderer((EntityType) reg.get(), context -> {
                     try {
                         return (EntityRenderer) rendererClass

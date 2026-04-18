@@ -12,19 +12,13 @@ import com.maxwell.tutm.init.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -57,6 +51,7 @@ public class CommonEvents {
             }
         }
     }
+
     private static void moveToTimeRealm(ServerPlayer player) {
         ServerLevel destination = player.server.getLevel(TUTMDimensions.TIME_REALM_LEVEL_KEY);
         if (destination != null) {
@@ -70,6 +65,7 @@ public class CommonEvents {
             TimeRealmInitializer.placeStructure(destination, TARGET_POS, STRUCTURE_PATH);
         }
     }
+
     private static void returnToOverworld(ServerPlayer player) {
         ServerLevel overworld = player.server.getLevel(Level.OVERWORLD);
         if (overworld != null) {
@@ -77,7 +73,6 @@ public class CommonEvents {
             if (respawnPos == null) {
                 respawnPos = overworld.getSharedSpawnPos();
             }
-
             player.fallDistance = 0;
             player.setDeltaMovement(0, 0, 0);
             player.teleportTo(overworld, respawnPos.getX() + 0.5, respawnPos.getY() + 1.0, respawnPos.getZ() + 0.5, player.getYRot(), player.getXRot());
@@ -85,6 +80,7 @@ public class CommonEvents {
             player.hurtMarked = true;
         }
     }
+
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
         Entity entity = event.getEntity();
@@ -117,6 +113,7 @@ public class CommonEvents {
             });
         }
     }
+
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {

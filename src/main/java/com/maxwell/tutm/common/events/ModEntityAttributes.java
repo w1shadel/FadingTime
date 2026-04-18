@@ -1,6 +1,7 @@
 package com.maxwell.tutm.common.events;
 
 import com.maxwell.tutm.TUTM;
+import com.maxwell.tutm.common.entity.ChronosMonolithEntity;
 import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.init.ModAttributes;
 import com.maxwell.tutm.init.ModEntities;
@@ -18,7 +19,12 @@ public class ModEntityAttributes {
                 ModEntities.get(The_Ultimate_TimeManagerEntity.class),
                 The_Ultimate_TimeManagerEntity.createAttributes().build()
         );
+        event.put(
+                ModEntities.get(ChronosMonolithEntity.class),
+                ChronosMonolithEntity.createAttributes().build()
+        );
     }
+
     @SubscribeEvent
     public static void onEntityAttributeModification(EntityAttributeModificationEvent event) {
         event.add(EntityType.PLAYER, ModAttributes.MAX_TIME_COST.get());

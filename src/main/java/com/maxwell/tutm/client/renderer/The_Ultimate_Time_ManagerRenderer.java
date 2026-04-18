@@ -41,24 +41,19 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
     @Override
     public void render(The_Ultimate_TimeManagerEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
         super.render(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
-
         float age = (float) pEntity.tickCount + pPartialTicks;
         boolean second = pEntity.isSecondForm();
         float r = second ? 1.0f : 1.0f;
         float g = second ? 0.1f : 0.9f;
         float b = second ? 0.2f : 0.4f;
-
         pPoseStack.pushPose();
-
         VertexConsumer vc = pBuffer.getBuffer(RenderType.entityTranslucentEmissive(ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/white.png")));
         Matrix4f mat = pPoseStack.last().pose();
         drawFootGrid(vc, mat, 3.0f, 10, age * 0.5f, r, g, b, 0.4f);
-
         pPoseStack.translate(0, 1.2, 0.3);
         pPoseStack.mulPose(Axis.XP.rotationDegrees(90));
         drawClockRing(vc, pPoseStack.last().pose(), 1.5f, 12, age * 2.0f, r, g, b, 0.6f);
         drawClockRing(vc, pPoseStack.last().pose(), 1.0f, 6, -age * 1.0f, r, g, b, 0.4f);
-        
         pPoseStack.popPose();
     }
 
@@ -66,9 +61,7 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
         float step = radius * 2.0f / lines;
         for (int i = 0; i <= lines; i++) {
             float offset = -radius + i * step;
-
             drawThinLine(vc, mat, -radius, 0.01f, offset, radius, 0.01f, offset, r, g, b, a);
-
             drawThinLine(vc, mat, offset, 0.01f, -radius, offset, 0.01f, radius, r, g, b, a);
         }
     }
@@ -91,11 +84,13 @@ public class The_Ultimate_Time_ManagerRenderer extends MobRenderer<The_Ultimate_
         vc.vertex(mat, x2, y2 + thickness, z2).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
         vc.vertex(mat, x1, y1 + thickness, z1).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(0, 1, 0).endVertex();
     }
+
     @Override
     protected void setupRotations(The_Ultimate_TimeManagerEntity entity, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTicks) {
         super.setupRotations(entity, poseStack, ageInTicks, rotationYaw, partialTicks);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
     }
+
     private static class TimeManagerGlowLayer extends RenderLayer<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> {
         public TimeManagerGlowLayer(RenderLayerParent<The_Ultimate_TimeManagerEntity, The_Ultimate_Time_ManagerModel> parent) {
             super(parent);

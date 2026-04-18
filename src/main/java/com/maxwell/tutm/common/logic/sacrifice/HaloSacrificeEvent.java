@@ -15,16 +15,13 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = TUTM.MODID)
 public class HaloSacrificeEvent {
-
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         Level level = event.getEntity().level();
         if (level.isClientSide || !(level instanceof ServerLevel serverLevel)) return;
-
         if (event.getSource().getEntity() instanceof Player player) {
             ItemStack clock = player.getMainHandItem().getItem() instanceof LunaChronosItem ? player.getMainHandItem() :
                     (player.getOffhandItem().getItem() instanceof LunaChronosItem ? player.getOffhandItem() : ItemStack.EMPTY);
-
             if (!clock.isEmpty()) {
                 if (SacrificeManager.isCorrectSacrifice(event.getEntity(), level)) {
                     ServerLevel overworld = serverLevel.getServer().getLevel(Level.OVERWORLD);

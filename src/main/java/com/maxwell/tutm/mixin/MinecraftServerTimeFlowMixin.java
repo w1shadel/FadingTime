@@ -4,7 +4,6 @@ import com.maxwell.tutm.common.entity.The_Ultimate_TimeManagerEntity;
 import com.maxwell.tutm.common.logic.BossTimeManager;
 import com.maxwell.tutm.common.logic.BossTimeMode;
 import com.maxwell.tutm.common.logic.TimeManager;
-import com.maxwell.tutm.common.util.CurioUtil;
 import net.minecraft.Util;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -32,20 +31,19 @@ public abstract class MinecraftServerTimeFlowMixin {
             boss.absoluteRealTimeTick(currentRealTime);
         }
     }
+
     @Redirect(
             method = "tickChildren",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tick(Ljava/util/function/BooleanSupplier;)V")
     )
     private void tutm$redirectLevelTick(ServerLevel serverlevel, BooleanSupplier pHasTimeLeft) {
         BossTimeManager.tick(serverlevel);
-
         if (serverlevel.dimension() == Level.OVERWORLD) {
             for (ServerPlayer player : this.getPlayerList().getPlayers()) {
                 TimeManager.serverTick(player);
             }
         }
         BossTimeMode mode = BossTimeManager.getMode();
-
         if (mode != BossTimeMode.NORMAL) {
             switch (mode) {
                 case STOPPED, ABSOLUTE_STOP -> {

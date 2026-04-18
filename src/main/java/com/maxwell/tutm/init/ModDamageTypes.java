@@ -19,6 +19,7 @@ public class ModDamageTypes {
     public static DamageSource getTimeDamageSource(Level level, @Nullable Entity attacker) {
         return getTimeDamageSource(level, attacker, attacker);
     }
+
     public static DamageSource getTimeDamageSource(Level level, @Nullable Entity attacker, @Nullable Entity directEntity) {
         Holder.Reference<DamageType> holder = level.registryAccess()
                 .registryOrThrow(Registries.DAMAGE_TYPE)
@@ -26,12 +27,13 @@ public class ModDamageTypes {
         if (attacker != null) {
             return new DamageSource(holder, directEntity, attacker);
         }
-
         return new DamageSource(holder, directEntity);
     }
+
     public static DamageSource getLaserDamageSource(Level level, Entity attacker) {
         return getLaserDamageSource(level, attacker, attacker);
     }
+
     public static DamageSource getLaserDamageSource(Level level, Entity attacker, Entity directEntity) {
         var holder = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(LASER);
         return new DamageSource(holder, directEntity, attacker);

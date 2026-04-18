@@ -16,11 +16,13 @@ public class CurioUtil {
         if (entity == null || item == null) return false;
         return CuriosApi.getCuriosHelper().findFirstCurio(entity, item).isPresent();
     }
+
     public static ItemStack getHaloStack(Player player) {
         return CuriosApi.getCuriosHelper().findFirstCurio(player, stack -> stack.getItem() instanceof TimeHaloItem)
                 .map(SlotResult::stack)
                 .orElse(ItemStack.EMPTY);
     }
+
     public static boolean hasHalo(LivingEntity entity) {
         return hasCurio(entity, ModItems.TIME_HALO.get());
     }

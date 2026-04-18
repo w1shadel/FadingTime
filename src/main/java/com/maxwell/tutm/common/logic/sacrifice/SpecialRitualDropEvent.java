@@ -8,9 +8,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.CatVariant;
-import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -22,7 +19,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = TUTM.MODID)
 public class SpecialRitualDropEvent {
-
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         Level level = event.getEntity().level();
@@ -34,7 +30,6 @@ public class SpecialRitualDropEvent {
             boolean isDay = level.isDay();
             if (victim instanceof Cat cat) {
                 ResourceLocation variantId = BuiltInRegistries.CAT_VARIANT.getKey(cat.getVariant());
-
                 if (variantId != null) {
                     String path = variantId.getPath();
                     if (path.contains("all_black")) {

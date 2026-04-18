@@ -24,7 +24,7 @@ import java.util.UUID;
         width = 0.8f, height = 0.8f,
         renderer = "com.maxwell.tutm.client.renderer.TemporalHomingRenderer"
 )
-public class TemporalHomingEntity extends Entity {
+public class TemporalHomingEntity extends Entity implements ITUTMEntity {
     private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(TemporalHomingEntity.class, EntityDataSerializers.INT);
     private LivingEntity owner;
     private LivingEntity target;
@@ -52,36 +52,29 @@ public class TemporalHomingEntity extends Entity {
     public void tick() {
         if (TimeManager.isTimeStopped()) return;
         super.tick();
-
         if (!this.level().isClientSide) {
             if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
                 this.discard();
                 return;
             }
             this.entityData.set(AGE, this.entityData.get(AGE) + 1);
-
             if (this.target == null || !this.target.isAlive()) {
                 if (this.targetUUID != null) {
-                    this.target = (LivingEntity) ((net.minecraft.server.level.ServerLevel)this.level()).getEntity(this.targetUUID);
+                    this.target = (LivingEntity) ((net.minecraft.server.level.ServerLevel) this.level()).getEntity(this.targetUUID);
                 }
             }
-
             if (this.target != null) {
-
                 Vec3 targetPos = this.target.getBoundingBox().getCenter();
                 Vec3 dir = targetPos.subtract(this.position()).normalize();
                 int currentAge = this.getBallAge();
                 double speed = 0.4 + (currentAge * 0.015);
-                if (speed > 1.5) speed = 1.5; 
+                if (speed > 1.5) speed = 1.5;
                 this.setDeltaMovement(this.getDeltaMovement().lerp(dir.scale(speed), 0.25));
             }
-
             this.setPos(this.getX() + this.getDeltaMovement().x, this.getY() + this.getDeltaMovement().y, this.getZ() + this.getDeltaMovement().z);
-
             if (this.target != null && this.getBoundingBox().intersects(this.target.getBoundingBox())) {
                 onHit(this.target);
             }
-
             if (this.entityData.get(AGE) > 200) {
                 this.discard();
             }
@@ -92,7 +85,6 @@ public class TemporalHomingEntity extends Entity {
         DamageSource source = ModDamageTypes.getLaserDamageSource(this.level(), this.owner, this);
         float damage = ModConfig.TEMPORAL_LASER_DAMAGE.get().floatValue() * 1.5f;
         EntityHelper.applyAbsoluteTimeAttack(victim, this.owner, damage, source);
-
         this.discard();
     }
 

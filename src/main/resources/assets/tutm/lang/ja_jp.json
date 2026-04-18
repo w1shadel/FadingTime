@@ -1,4 +1,7 @@
 {
+  "skill.tutm.acceleration": "時間加速",
+  "skill.tutm.stop": "時間停止",
+  "skill.tutm.rewind": "時間遡行",
   "item.tutm.debug": "すごいデバッグの四角形の何か",
   "item.tutm.chrono_tank1": "クロノ・タンク Mk1",
   "item.tutm.chrono_tank2": "クロノ・タンク Mk2",

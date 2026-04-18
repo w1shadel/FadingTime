@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
-@SuppressWarnings("removal")
 public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
     public ChronosGearRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -35,70 +34,57 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
             pose.mulPose(Axis.XP.rotationDegrees(90.0f));
             pose.mulPose(Axis.ZP.rotationDegrees(timer * 10.0f));
         }
-        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucentEmissive(getTextureLocation(entity)));
+        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
         Matrix4f mat = pose.last().pose();
-
-        float circleAlpha = 0.5f * (1.0f + Mth.sin(timer * 0.1f));
-        drawGeometricCircle(vc, mat, 1.3f, 6, 0.04f, timer * 2.0f, 1.0f, 1.0f, 1.0f, circleAlpha);
-        drawGeometricCircle(vc, mat, 1.1f, 8, 0.02f, -timer * 1.5f, 0.8f, 0.9f, 1.0f, circleAlpha * 0.7f);
-
+        int light = (state == ChronosGearEntity.STATE_WAITING) ? packedLight : 15728880;
+        float circleAlpha = 0.3f * (1.0f + Mth.sin(timer * 0.1f));
+        drawGeometricCircle(vc, mat, 1.3f, 6, 0.04f, timer * 2.0f, 0.8f, 0.8f, 1.0f, circleAlpha, light);
+        drawGeometricCircle(vc, mat, 1.1f, 8, 0.02f, -timer * 1.5f, 0.6f, 0.7f, 1.0f, circleAlpha * 0.6f, light);
         switch (state) {
-            case ChronosGearEntity.STATE_WAITING -> renderWaiting(pose, vc, mat, timer);
-            case ChronosGearEntity.STATE_FLYING -> renderFlying(pose, vc, mat, timer);
-            case ChronosGearEntity.STATE_BOUNCING -> renderBouncing(pose, vc, mat, timer);
+            case ChronosGearEntity.STATE_WAITING -> renderWaiting(pose, vc, mat, timer, light);
+            case ChronosGearEntity.STATE_FLYING -> renderFlying(pose, vc, mat, timer, light);
+            case ChronosGearEntity.STATE_BOUNCING -> renderBouncing(pose, vc, mat, timer, light);
         }
         pose.popPose();
         super.render(entity, entityYaw, partialTick, pose, buffer, packedLight);
     }
 
-    private void renderFlying(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
-        float alpha = 0.9f;
-        draw3DGear(vc, mat, 1.0f, 0.15f, 20, 0.4f, 1.0f, 0.4f, 0.0f, alpha);
+    private void renderFlying(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer, int light) {
+        float alpha = 0.7f;
+        draw3DGear(vc, mat, 1.0f, 0.15f, 20, 0.4f, 0.8f, 0.8f, 0.0f, alpha, light);
         pose.pushPose();
         pose.mulPose(Axis.ZP.rotationDegrees(timer * -80.0f));
-        draw3DGear(vc, pose.last().pose(), 0.8f, 0.1f, 12, 0.2f, 1.0f, 0.2f, 0.0f, alpha * 0.7f);
+        draw3DGear(vc, pose.last().pose(), 0.8f, 0.1f, 12, 0.2f, 0.8f, 0.2f, 0.0f, alpha * 0.6f, light);
         pose.popPose();
     }
 
-    private void renderWaiting(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
-        float pulse = 0.6f + Mth.sin(timer * 0.15f) * 0.4f;
+    private void renderWaiting(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer, int light) {
+        float pulse = 0.5f + Mth.sin(timer * 0.15f) * 0.3f;
         pose.pushPose();
         pose.mulPose(Axis.ZP.rotationDegrees(timer * 2.0f));
-        draw3DGear(vc, pose.last().pose(), 1.2f, 0.25f, 16, 0.2f, 0.9f, 0.7f, 0.1f, pulse);
+        draw3DGear(vc, pose.last().pose(), 1.2f, 0.25f, 16, 0.2f, 0.7f, 0.5f, 0.1f, pulse, light);
         pose.popPose();
-        pose.pushPose();
-        pose.mulPose(Axis.ZP.rotationDegrees(timer * -4.0f));
-        pose.translate(0, 0, 0.05f);
-        draw3DGear(vc, pose.last().pose(), 0.7f, 0.2f, 10, 0.15f, 1.0f, 0.85f, 0.3f, pulse * 0.8f);
-        pose.popPose();
-        pose.pushPose();
-        pose.mulPose(Axis.ZP.rotationDegrees(timer * 10.0f));
-        pose.translate(0, 0, 0.1f);
-        draw3DGear(vc, pose.last().pose(), 0.25f, 0.3f, 6, 0.1f, 1.0f, 0.95f, 0.6f, pulse);
-        pose.popPose();
+
     }
 
-    private void renderBouncing(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer) {
+    private void renderBouncing(PoseStack pose, VertexConsumer vc, Matrix4f mat, float timer, int light) {
         float scale = 1.0f + Mth.sin(timer * 0.4f) * 0.2f;
-        float whiten = 0.5f + Mth.sin(timer * 0.4f) * 0.5f;
+        float whiten = 0.4f + Mth.sin(timer * 0.4f) * 0.4f;
         pose.pushPose();
         pose.scale(scale, scale, scale);
-        draw3DGear(vc, pose.last().pose(), 1.0f, 0.5f, 12, 0.2f, 1.0f, 0.7f + (whiten * 0.3f), whiten, 0.9f);
-        pose.translate(Mth.sin(timer) * 0.05f, Mth.cos(timer) * 0.05f, 0);
-        draw3DGear(vc, pose.last().pose(), 0.6f, 0.55f, 8, 0.15f, 0.9f, 0.8f, 0.4f, 0.7f);
+        draw3DGear(vc, pose.last().pose(), 1.0f, 0.5f, 12, 0.2f, 0.8f, 0.6f + (whiten * 0.2f), whiten * 0.8f, 0.8f, light);
         pose.popPose();
     }
 
     private void draw3DGear(VertexConsumer vc, Matrix4f mat,
                             float radius, float thickness, int toothCount, float toothDepth,
-                            float r, float g, float b, float a) {
+                            float r, float g, float b, float a, int light) {
         float halfZ = thickness / 2.0f;
         float innerR = radius - toothDepth;
         float step = (float) (Math.PI * 2.0 / toothCount);
         for (int i = 0; i < toothCount; i++) {
             float angle = i * step;
             float nextAngle = (i + 1) * step;
-            float midAngle = i * step + step * 0.5f;
             float x1_out = Mth.cos(angle + step * 0.2f) * radius;
             float y1_out = Mth.sin(angle + step * 0.2f) * radius;
             float x2_out = Mth.cos(angle + step * 0.8f) * radius;
@@ -107,46 +93,13 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
             float y1_in = Mth.sin(angle) * innerR;
             float x2_in = Mth.cos(nextAngle) * innerR;
             float y2_in = Mth.sin(nextAngle) * innerR;
-            drawQuad(vc, mat,
-                    0, 0, halfZ,
-                    x1_in, y1_in, halfZ,
-                    x2_in, y2_in, halfZ,
-                    0, 0, halfZ, r, g, b, a, 0, 0, 1);
-            drawQuad(vc, mat,
-                    x1_in, y1_in, halfZ,
-                    x1_out, y1_out, halfZ,
-                    x2_out, y2_out, halfZ,
-                    x2_in, y2_in, halfZ, r, g, b, a, 0, 0, 1);
-            drawQuad(vc, mat,
-                    0, 0, -halfZ,
-                    x2_in, y2_in, -halfZ,
-                    x1_in, y1_in, -halfZ,
-                    0, 0, -halfZ, r, g, b, a, 0, 0, -1);
-            drawQuad(vc, mat,
-                    x2_in, y2_in, -halfZ,
-                    x2_out, y2_out, -halfZ,
-                    x1_out, y1_out, -halfZ,
-                    x1_in, y1_in, -halfZ, r, g, b, a, 0, 0, -1);
-            drawQuad(vc, mat,
-                    x1_out, y1_out, halfZ,
-                    x1_out, y1_out, -halfZ,
-                    x2_out, y2_out, -halfZ,
-                    x2_out, y2_out, halfZ, r * 0.8f, g * 0.8f, b * 0.8f, a,
-                    Mth.cos(angle), Mth.sin(angle), 0);
-            float x3_in = Mth.cos(nextAngle) * innerR;
-            float y3_in = Mth.sin(nextAngle) * innerR;
-            drawQuad(vc, mat,
-                    x2_out, y2_out, halfZ,
-                    x2_out, y2_out, -halfZ,
-                    x2_in, y2_in, -halfZ,
-                    x2_in, y2_in, halfZ, r * 0.7f, g * 0.7f, b * 0.7f, a,
-                    Mth.cos(midAngle), Mth.sin(midAngle), 0);
-            drawQuad(vc, mat,
-                    x1_in, y1_in, halfZ,
-                    x1_in, y1_in, -halfZ,
-                    x1_out, y1_out, -halfZ,
-                    x1_out, y1_out, halfZ, r * 0.9f, g * 0.9f, b * 0.9f, a,
-                    -Mth.sin(angle), Mth.cos(angle), 0);
+            drawQuad(vc, mat, 0, 0, halfZ, x1_in, y1_in, halfZ, x2_in, y2_in, halfZ, 0, 0, halfZ, r, g, b, a, 0, 0, 1, light);
+            drawQuad(vc, mat, x1_in, y1_in, halfZ, x1_out, y1_out, halfZ, x2_out, y2_out, halfZ, x2_in, y2_in, halfZ, r, g, b, a, 0, 0, 1, light);
+            drawQuad(vc, mat, 0, 0, -halfZ, x2_in, y2_in, -halfZ, x1_in, y1_in, -halfZ, 0, 0, -halfZ, r, g, b, a, 0, 0, -1, light);
+            drawQuad(vc, mat, x2_in, y2_in, -halfZ, x2_out, y2_out, -halfZ, x1_out, y1_out, -halfZ, x1_in, y1_in, -halfZ, r, g, b, a, 0, 0, -1, light);
+            drawQuad(vc, mat, x1_out, y1_out, halfZ, x1_out, y1_out, -halfZ, x2_out, y2_out, -halfZ, x2_out, y2_out, halfZ, r * 0.7f, g * 0.7f, b * 0.7f, a, Mth.cos(angle), Mth.sin(angle), 0, light);
+            drawQuad(vc, mat, x2_out, y2_out, halfZ, x2_out, y2_out, -halfZ, x2_in, y2_in, -halfZ, x2_in, y2_in, halfZ, r * 0.6f, g * 0.6f, b * 0.6f, a, Mth.cos(angle), Mth.sin(angle), 0, light);
+            drawQuad(vc, mat, x1_in, y1_in, halfZ, x1_in, y1_in, -halfZ, x1_out, y1_out, -halfZ, x1_out, y1_out, halfZ, r * 0.8f, g * 0.8f, b * 0.8f, a, -Mth.sin(angle), Mth.cos(angle), 0, light);
         }
     }
 
@@ -156,19 +109,14 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
                           float x3, float y3, float z3,
                           float x4, float y4, float z4,
                           float r, float g, float b, float a,
-                          float nx, float ny, float nz) {
-        vc.vertex(mat, x1, y1, z1).color(r, g, b, a).uv(0, 0).overlayCoords(0).uv2(240).normal(nx, ny, nz).endVertex();
-        vc.vertex(mat, x2, y2, z2).color(r, g, b, a).uv(1, 0).overlayCoords(0).uv2(240).normal(nx, ny, nz).endVertex();
-        vc.vertex(mat, x3, y3, z3).color(r, g, b, a).uv(1, 1).overlayCoords(0).uv2(240).normal(nx, ny, nz).endVertex();
-        vc.vertex(mat, x4, y4, z4).color(r, g, b, a).uv(0, 1).overlayCoords(0).uv2(240).normal(nx, ny, nz).endVertex();
+                          float nx, float ny, float nz, int light) {
+        vc.vertex(mat, x1, y1, z1).color(r, g, b, a).uv(0, 0).overlayCoords(0).uv2(light).normal(nx, ny, nz).endVertex();
+        vc.vertex(mat, x2, y2, z2).color(r, g, b, a).uv(1, 0).overlayCoords(0).uv2(light).normal(nx, ny, nz).endVertex();
+        vc.vertex(mat, x3, y3, z3).color(r, g, b, a).uv(1, 1).overlayCoords(0).uv2(light).normal(nx, ny, nz).endVertex();
+        vc.vertex(mat, x4, y4, z4).color(r, g, b, a).uv(0, 1).overlayCoords(0).uv2(light).normal(nx, ny, nz).endVertex();
     }
 
-    @Override
-    public ResourceLocation getTextureLocation(ChronosGearEntity entity) {
-        return new ResourceLocation("minecraft", "textures/misc/white.png");
-    }
-
-    private void drawGeometricCircle(VertexConsumer vc, Matrix4f mat, float radius, int sides, float thickness, float rotation, float r, float g, float b, float a) {
+    private void drawGeometricCircle(VertexConsumer vc, Matrix4f mat, float radius, int sides, float thickness, float rotation, float r, float g, float b, float a, int light) {
         float step = (float) (Math.PI * 2.0 / sides);
         float inner = radius - thickness;
         for (int i = 0; i < sides; i++) {
@@ -177,7 +125,12 @@ public class ChronosGearRenderer extends EntityRenderer<ChronosGearEntity> {
             float x2o = Mth.cos(a2) * radius, y2o = Mth.sin(a2) * radius;
             float x1i = Mth.cos(a1) * inner, y1i = Mth.sin(a1) * inner;
             float x2i = Mth.cos(a2) * inner, y2i = Mth.sin(a2) * inner;
-            drawQuad(vc, mat, x1i, y1i, 0, x2i, y2i, 0, x2o, y2o, 0, x1o, y1o, 0, r, g, b, a, 0, 0, 1);
+            drawQuad(vc, mat, x1i, y1i, 0, x2i, y2i, 0, x2o, y2o, 0, x1o, y1o, 0, r, g, b, a, 0, 0, 1, light);
         }
+    }
+
+    @Override
+    public ResourceLocation getTextureLocation(ChronosGearEntity entity) {
+        return new ResourceLocation("minecraft", "textures/misc/white.png");
     }
 }

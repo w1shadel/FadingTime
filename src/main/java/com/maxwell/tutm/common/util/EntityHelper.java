@@ -1,5 +1,6 @@
 package com.maxwell.tutm.common.util;
 
+import com.maxwell.tutm.common.entity.ITUTMEntity;
 import com.maxwell.tutm.init.ModDamageTypes;
 import com.maxwell.tutm.init.ModEffects;
 import net.minecraft.core.BlockPos;
@@ -42,7 +43,9 @@ public class EntityHelper {
             }
             if (!success || healthAfter >= healthBefore) {
                 serverPlayer.setHealth(Math.max(0, healthBefore - amount));
-                if (serverPlayer.getHealth() <= 0) {serverPlayer.die(source);}
+                if (serverPlayer.getHealth() <= 0) {
+                    serverPlayer.die(source);
+                }
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
                 INSTABILITY_COUNT.put(uuid, count);
                 if (count >= 30) {
@@ -71,6 +74,12 @@ public class EntityHelper {
         if (target instanceof Player p && (p.isCreative() || p.isSpectator())) return;
         if (owner == target) return;
         if (damageSource == null) return;
+        if (target instanceof ITUTMEntity) {
+            if (owner instanceof ITUTMEntity || (owner instanceof LivingEntity living && CurioUtil.hasHalo(living))) {
+                return;
+            }
+        }
+        DamageSource finalSource = (damageSource != null) ? damageSource : ModDamageTypes.getTimeDamageSource(target.level(), owner);
         float healthBefore = target.getHealth();
         target.invulnerableTime = 0;
         boolean success = target.hurt(damageSource, amount);
@@ -82,9 +91,7 @@ public class EntityHelper {
                 return;
             }
             if (!success || healthAfter >= healthBefore) {
-
                 serverPlayer.setHealth(Math.max(0, healthBefore - amount));
-                
                 int count = INSTABILITY_COUNT.getOrDefault(uuid, 0) + 1;
                 INSTABILITY_COUNT.put(uuid, count);
                 if (count >= 30) {
@@ -97,6 +104,7 @@ public class EntityHelper {
                 INSTABILITY_COUNT.put(uuid, 0);
             }
         } else {
+            target.hurt(finalSource, 0.01F);
             AttributeInstance maxHealth = target.getAttribute(Attributes.MAX_HEALTH);
             if (maxHealth != null) {
                 maxHealth.setBaseValue(maxHealth.getValue() - amount);
@@ -107,6 +115,7 @@ public class EntityHelper {
         }
         target.level().broadcastEntityEvent(target, (byte) 2);
     }
+
     public static void applyDomainRetribution(LivingEntity attacker, LivingEntity defender, float damageAmount) {
         double range = 8.0;
         defender.level().getEntitiesOfClass(LivingEntity.class, defender.getBoundingBox().inflate(range)).forEach(nearby -> {
@@ -117,6 +126,7 @@ public class EntityHelper {
         });
         attacker.addEffect(new MobEffectInstance(ModEffects.TIME_DISORDER.get(), 200, 1));
     }
+
     private static void executeTimelineCorrection(ServerPlayer player) {
         BlockPos respawnPos = player.getRespawnPosition();
         ServerLevel respawnLevel = player.server.getLevel(player.getRespawnDimension());

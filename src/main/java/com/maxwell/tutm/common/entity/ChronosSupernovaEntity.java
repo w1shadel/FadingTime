@@ -25,11 +25,10 @@ import java.util.List;
         width = 2.0f, height = 2.0f,
         renderer = "com.maxwell.tutm.client.renderer.ChronosSupernovaRenderer"
 )
-public class ChronosSupernovaEntity extends Entity {
-    private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(ChronosSupernovaEntity.class, EntityDataSerializers.INT);
-    public static final int CHARGE_TIME = 200; 
+public class ChronosSupernovaEntity extends Entity implements ITUTMEntity {
+    public static final int CHARGE_TIME = 200;
     public static final int EXPLOSION_TIME = 20;
-
+    private static final EntityDataAccessor<Integer> AGE = SynchedEntityData.defineId(ChronosSupernovaEntity.class, EntityDataSerializers.INT);
     private LivingEntity owner;
 
     public ChronosSupernovaEntity(EntityType<?> type, Level level) {
@@ -56,22 +55,17 @@ public class ChronosSupernovaEntity extends Entity {
     public void tick() {
         if (TimeManager.isTimeStopped()) return;
         super.tick();
-
         if (this.level().isClientSide) {
-
         } else {
             if (this.owner == null || !this.owner.isAlive() || this.owner.isRemoved()) {
                 this.discard();
                 return;
             }
         }
-        
         int currentAge = getEntityAge();
         this.entityData.set(AGE, currentAge + 1);
-
         if (this.level().isClientSide) {
             if (currentAge < CHARGE_TIME) {
-
                 for (int i = 0; i < 5; i++) {
                     double angle = Math.random() * Math.PI * 2;
                     double radius = 10.0 + Math.random() * 5.0;
@@ -82,7 +76,6 @@ public class ChronosSupernovaEntity extends Entity {
                             -offsetX * 0.1, -1.0, -offsetZ * 0.1);
                 }
             } else if (currentAge == CHARGE_TIME) {
-
                 for (int i = 0; i < 200; i++) {
                     double speed = 2.0 + Math.random() * 4.0;
                     double theta = Math.random() * Math.PI * 2;
@@ -91,7 +84,7 @@ public class ChronosSupernovaEntity extends Entity {
                     double vy = Math.sin(phi) * Math.sin(theta) * speed;
                     double vz = Math.cos(phi) * speed;
                     this.level().addParticle(ParticleTypes.END_ROD, this.getX(), this.getY(), this.getZ(), vx, vy, vz);
-                    this.level().addParticle(ParticleTypes.EXPLOSION, this.getX() + vx*10, this.getY() + vy*10, this.getZ() + vz*10, 0, 0, 0);
+                    this.level().addParticle(ParticleTypes.EXPLOSION, this.getX() + vx * 10, this.getY() + vy * 10, this.getZ() + vz * 10, 0, 0, 0);
                 }
             }
         } else {
@@ -105,7 +98,7 @@ public class ChronosSupernovaEntity extends Entity {
     }
 
     private void detonate() {
-        double maxRadius = 64.0; 
+        double maxRadius = 64.0;
         AABB area = new AABB(
                 this.getX() - maxRadius, this.getY() - maxRadius, this.getZ() - maxRadius,
                 this.getX() + maxRadius, this.getY() + maxRadius, this.getZ() + maxRadius
@@ -115,21 +108,18 @@ public class ChronosSupernovaEntity extends Entity {
             if (target == this.owner) continue;
             double distance = this.distanceTo(target);
             if (distance <= maxRadius) {
-
                 float damage = (float) (200.0 * (1.0 - (distance / maxRadius)));
                 if (damage < 10.0f) damage = 10.0f;
                 Entity attacker = this.owner != null ? this.owner : this;
                 DamageSource source = ModDamageTypes.getLaserDamageSource(this.level(), attacker, this);
-
-                if (target instanceof net.minecraft.world.entity.player.Player player && (player.isCreative() || player.isSpectator())) continue;
-
+                if (target instanceof net.minecraft.world.entity.player.Player player && (player.isCreative() || player.isSpectator()))
+                    continue;
                 target.hurt(source, damage);
                 if (this.owner != null) {
                     EntityHelper.applyAbsoluteTimeAttack(target, this.owner, damage, source);
                 }
             }
         }
-
         if (!this.level().isClientSide && this.owner != null) {
             int numLasers = 32;
             double goldenRatio = (1 + Math.sqrt(5.0)) / 2.0;
@@ -138,14 +128,11 @@ public class ChronosSupernovaEntity extends Entity {
                 double t = (double) i / numLasers;
                 double inclination = Math.acos(1 - 2 * t);
                 double azimuth = angleIncrement * i;
-                
                 double dx = Math.sin(inclination) * Math.cos(azimuth);
                 double dy = Math.sin(inclination) * Math.sin(azimuth);
                 double dz = Math.cos(inclination);
-                
-                Vec3 spawnPos = this.position().add(0, 1.5, 0); 
+                Vec3 spawnPos = this.position().add(0, 1.5, 0);
                 Vec3 targetPos = spawnPos.add(dx * 10, dy * 10, dz * 10);
-                
                 TemporalLaserEntity laser = new TemporalLaserEntity(this.level(), (LivingEntity) this.owner, spawnPos, targetPos, 0);
                 this.level().addFreshEntity(laser);
             }

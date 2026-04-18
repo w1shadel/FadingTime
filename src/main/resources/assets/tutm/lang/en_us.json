@@ -1,4 +1,7 @@
 {
+  "skill.tutm.acceleration": "Time Acceleration",
+  "skill.tutm.stop": "Time Stop",
+  "skill.tutm.rewind": "Time Rewind",
   "item.tutm.debug": "Some Kind of Awesome Debug Rectangle",
   "item.tutm.chrono_tank1": "Chrono Tank Mk1",
   "item.tutm.chrono_tank2": "Chrono Tank Mk2",

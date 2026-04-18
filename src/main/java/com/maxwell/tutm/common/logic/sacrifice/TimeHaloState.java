@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+
 import java.util.UUID;
 
 public class TimeHaloState extends SavedData {
@@ -15,16 +16,19 @@ public class TimeHaloState extends SavedData {
                 TimeHaloState::load, TimeHaloState::new, "time_halo_manager");
     }
 
-    public UUID getOwner() { return ownerUUID; }
-    public void setOwner(UUID uuid) {
-        this.ownerUUID = uuid;
-        setDirty();
-    }
-
     public static TimeHaloState load(CompoundTag tag) {
         TimeHaloState state = new TimeHaloState();
         if (tag.hasUUID("owner")) state.ownerUUID = tag.getUUID("owner");
         return state;
+    }
+
+    public UUID getOwner() {
+        return ownerUUID;
+    }
+
+    public void setOwner(UUID uuid) {
+        this.ownerUUID = uuid;
+        setDirty();
     }
 
     @Override

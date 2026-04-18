@@ -17,7 +17,6 @@
     "TrackedEntityAccessor",
     "EntityRenderDispatcherTimeStopMixin",
     "LivingEntityAccessor",
-    "AbsoluteClientTimeMixin",
     "RaidMixin"
   ],
   "client": [

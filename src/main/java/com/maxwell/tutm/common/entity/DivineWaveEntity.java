@@ -29,12 +29,9 @@ import java.util.UUID;
         width = 1.0f,
         height = 1.0f,
         category = MobCategory.MISC,
-        renderer =  "com.maxwell.tutm.client.renderer.DivineWaveRenderer"
+        renderer = "com.maxwell.tutm.client.renderer.DivineWaveRenderer"
 )
-public class DivineWaveEntity extends Entity {
-    public static int getMaxRadius() { return ModConfig.DIVINE_WAVE_MAX_RADIUS.get(); }
-    public static int getExpandTicks() { return ModConfig.DIVINE_WAVE_EXPAND_TICKS.get(); }
-    public static int getFadeTicks() { return ModConfig.DIVINE_WAVE_FADE_TICKS.get(); }
+public class DivineWaveEntity extends Entity implements ITUTMEntity {
     private static final EntityDataAccessor<Integer> AGE =
             SynchedEntityData.defineId(DivineWaveEntity.class, EntityDataSerializers.INT);
     private final Set<UUID> alreadyHit = new HashSet<>();
@@ -50,6 +47,18 @@ public class DivineWaveEntity extends Entity {
         this.owner = owner;
         this.setPos(owner.getX(), owner.getY(), owner.getZ());
         this.entityData.set(AGE, 0);
+    }
+
+    public static int getMaxRadius() {
+        return ModConfig.DIVINE_WAVE_MAX_RADIUS.get();
+    }
+
+    public static int getExpandTicks() {
+        return ModConfig.DIVINE_WAVE_EXPAND_TICKS.get();
+    }
+
+    public static int getFadeTicks() {
+        return ModConfig.DIVINE_WAVE_FADE_TICKS.get();
     }
 
     @Override

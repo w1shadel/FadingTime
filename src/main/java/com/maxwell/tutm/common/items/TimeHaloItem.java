@@ -37,6 +37,7 @@ public class TimeHaloItem extends Item implements ICurioItem {
             );
         }
     }
+
     @Override
     public void inventoryTick(ItemStack pStack, Level pLevel, Entity pEntity, int pSlotId, boolean pIsSelected) {
         if (!pLevel.isClientSide && pEntity instanceof Player player) {
@@ -53,6 +54,7 @@ public class TimeHaloItem extends Item implements ICurioItem {
             }
         }
     }
+
     @Override
     public boolean canEquip(SlotContext slotContext, ItemStack stack) {
         Level level = slotContext.entity().level();

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class LastClockItem extends LunarTimeComponentItem implements AllLunarChronoItem{
+public class LastClockItem extends LunarTimeComponentItem implements AllLunarChronoItem {
     public LastClockItem(Properties pProperties, Component description) {
         super(pProperties, description);
     }

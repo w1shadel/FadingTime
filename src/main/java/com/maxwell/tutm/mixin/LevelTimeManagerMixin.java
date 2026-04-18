@@ -5,6 +5,7 @@ import com.maxwell.tutm.common.logic.*;
 import com.maxwell.tutm.common.util.CurioUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,16 +19,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 @Mixin(value = Level.class)
 public abstract class LevelTimeManagerMixin {
+    @Unique
+    private static boolean tutm$isProcessing = false;
     @Shadow
     @Final
     private DamageSources damageSources;
-    @Unique
-    private static boolean tutm$isProcessing = false;
 
     @Inject(method = "guardEntityTick", at = @At("HEAD"), cancellable = true)
     private void tutm$manageFlow(Consumer<Entity> consumer, Entity entity, CallbackInfo ci) {
@@ -116,18 +116,21 @@ public abstract class LevelTimeManagerMixin {
         if (entity instanceof LivingEntity living && living.getPersistentData().contains("TimeDebt")) {
             float debt = living.getPersistentData().getFloat("TimeDebt");
             if (debt > 0) {
-                float newHealth = living.getHealth() - debt;
-                try {
-                    var healthId = LivingEntityAccessor.getHealthDataId();
-                    living.getEntityData().set(healthId, newHealth);
-                } catch (Exception e) {
+                float currentHealth = living.getHealth();
+                float newHealth = currentHealth - debt;
+                living.getPersistentData().remove("TimeDebt");
+                if (newHealth <= 0) {
+                    DamageSource source = living.getLastDamageSource();
+                    if (source == null) {
+                        source = this.damageSources.generic();
+                    }
+                    living.die(source);
+                    if (living.isAlive()) {
+                        living.setRemoved(Entity.RemovalReason.KILLED);
+                    }
+                } else {
                     living.setHealth(newHealth);
                 }
-                if (newHealth <= 0) {
-                    living.die(Objects.requireNonNull(living.getLastDamageSource()));
-                    living.setRemoved(Entity.RemovalReason.KILLED);
-                }
-                living.getPersistentData().remove("TimeDebt");
             }
         }
     }

@@ -9,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class SacrificeManager {
-
     public static EntityType<?> getTargetForPhase(int phase) {
         return switch (phase) {
             case 0 -> EntityType.ZOMBIE;
@@ -39,7 +38,7 @@ public class SacrificeManager {
     }
 
     public static void dropPart(Level level, Vec3 pos) {
-        ItemEntity item = new ItemEntity(level, pos.x, pos.y, pos.z,new ItemStack(ModItems.HALO_PART.get()));
+        ItemEntity item = new ItemEntity(level, pos.x, pos.y, pos.z, new ItemStack(ModItems.HALO_PART.get()));
         level.addFreshEntity(item);
     }
 

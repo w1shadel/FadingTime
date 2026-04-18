@@ -16,9 +16,9 @@ public class The_Ultimate_Time_ManagerModel extends HierarchicalModel<The_Ultima
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(TUTM.MODID, "the_ultimate_time_manager_model"), "main");
     public final ModelPart effectA;
     public final ModelPart effectB;
+    public final ModelPart head;
     private final ModelPart waist;
     private final ModelPart body;
-    public final ModelPart head;
     private final ModelPart neck;
     private final ModelPart halo;
     private final ModelPart short_1;

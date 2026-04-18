@@ -1,6 +1,5 @@
 package com.maxwell.tutm.common.entity;
 
-import com.maxwell.tutm.client.renderer.ChronosGearRenderer;
 import com.maxwell.tutm.common.config.ModConfig;
 import com.maxwell.tutm.common.logic.TimeManager;
 import com.maxwell.tutm.common.util.AutoRegisterEntity;
@@ -8,11 +7,11 @@ import com.maxwell.tutm.common.util.EntityHelper;
 import com.maxwell.tutm.init.ModDamageTypes;
 import com.maxwell.tutm.init.ModEntities;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -26,29 +25,24 @@ import java.util.List;
         width = 1.2f,
         height = 1.2f,
         category = MobCategory.MISC,
-        renderer =  "com.maxwell.tutm.client.renderer.ChronosGearRenderer"
+        renderer = "com.maxwell.tutm.client.renderer.ChronosGearRenderer"
 )
-public class ChronosGearEntity extends Entity {
-    public static int getWaitTicks() { return ModConfig.CHRONOS_GEAR_WAIT_TICKS.get(); }
-    public static int getBounceTicks() { return ModConfig.CHRONOS_GEAR_BOUNCE_TICKS.get(); }
-    public static int getMaxFlyTicks() { return ModConfig.CHRONOS_GEAR_MAX_FLY_TICKS.get(); }
+public class ChronosGearEntity extends Entity implements ITUTMEntity {
     public static final int STATE_WAITING = 0;
     public static final int STATE_FLYING = 1;
     public static final int STATE_BOUNCING = 2;
     private static final EntityDataAccessor<Boolean> STACKED = SynchedEntityData.defineId(ChronosGearEntity.class, EntityDataSerializers.BOOLEAN);
-    public static int getMaxBounces() { return ModConfig.CHRONOS_GEAR_MAX_BOUNCES.get(); }
     private int state = STATE_WAITING;
     private int stateTimer = 0;
     private Entity owner;
     private int bounceCount = 0;
     private LivingEntity target;
+
     public ChronosGearEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
     }
-    public void setTarget(LivingEntity target) {
-        this.target = target;
-    }
+
     public ChronosGearEntity(Level level, Entity owner, Vec3 spawnPos) {
         this(ModEntities.get(ChronosGearEntity.class), level);
         this.owner = owner;
@@ -58,6 +52,26 @@ public class ChronosGearEntity extends Entity {
         if (TimeManager.isTimeStopped()) {
             this.entityData.set(STACKED, true);
         }
+    }
+
+    public static int getWaitTicks() {
+        return ModConfig.CHRONOS_GEAR_WAIT_TICKS.get();
+    }
+
+    public static int getBounceTicks() {
+        return ModConfig.CHRONOS_GEAR_BOUNCE_TICKS.get();
+    }
+
+    public static int getMaxFlyTicks() {
+        return ModConfig.CHRONOS_GEAR_MAX_FLY_TICKS.get();
+    }
+
+    public static int getMaxBounces() {
+        return ModConfig.CHRONOS_GEAR_MAX_BOUNCES.get();
+    }
+
+    public void setTarget(LivingEntity target) {
+        this.target = target;
     }
 
     @Override
@@ -134,7 +148,6 @@ public class ChronosGearEntity extends Entity {
         if (this.target == null || !this.target.isAlive()) {
             this.target = findTarget();
         }
-
         if (target == null) {
             this.discard();
             return;

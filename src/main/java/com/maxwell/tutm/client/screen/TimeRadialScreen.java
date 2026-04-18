@@ -40,13 +40,13 @@ public class TimeRadialScreen extends Screen {
         drawRadialIcon(graphics, TimeTextures.STOP, centerX, centerY - 50, selected == 1);
         drawRadialIcon(graphics, TimeTextures.ACCE, centerX + 40, centerY + 30, selected == 0);
         drawRadialIcon(graphics, TimeTextures.REWIND, centerX - 40, centerY + 30, selected == 2);
-        String name = switch (selected) {
-            case 0 -> "TIME ACCELERATION";
-            case 1 -> "TIME STOP";
-            case 2 -> "TIME REWINDING";
-            default -> "";
+        Component skillName = switch (selected) {
+            case 0 -> Component.translatable("skill.tutm.acceleration");
+            case 1 -> Component.translatable("skill.tutm.stop");
+            case 2 -> Component.translatable("skill.tutm.rewind");
+            default -> Component.empty();
         };
-        graphics.drawCenteredString(this.font, name, centerX, centerY + 60, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, skillName, centerX, centerY + 60, 0xFFFFFF);
     }
 
     private void drawRadialIcon(GuiGraphics graphics, ResourceLocation icon, int x, int y, boolean active) {

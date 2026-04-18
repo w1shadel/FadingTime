@@ -32,23 +32,22 @@ public class TimeDataCapability {
         public double attackBonus = 0;
         public double defenseBonus = 0;
 
-        // 属性から最大値を取得する（LivingEntityが必要）
         public double getMaxCost(LivingEntity entity) {
             AttributeInstance instance = entity.getAttribute(ModAttributes.MAX_TIME_COST.get());
             if (instance != null) {
                 return instance.getValue();
             }
-            return 1000.0; // フォールバック
+            return 1000.0;
         }
+
         public double getRecoveryRate(LivingEntity entity) {
             var instance = entity.getAttribute(ModAttributes.TIME_RECOVERY_RATE.get());
-            return instance != null ? instance.getValue() : 5000.0; // フォールバック
+            return instance != null ? instance.getValue() : 5000.0;
         }
 
         public void updateBaseAttributes(LivingEntity entity) {
             var maxInst = entity.getAttribute(ModAttributes.MAX_TIME_COST.get());
             var recoveryInst = entity.getAttribute(ModAttributes.TIME_RECOVERY_RATE.get());
-
             if (maxInst != null) {
                 double maxBase = switch (this.tier) {
                     case 1 -> 1000.0;
@@ -59,7 +58,6 @@ public class TimeDataCapability {
                 };
                 maxInst.setBaseValue(maxBase);
             }
-
             if (recoveryInst != null) {
                 double recoveryBase = switch (this.tier) {
                     case 1 -> 100.0;

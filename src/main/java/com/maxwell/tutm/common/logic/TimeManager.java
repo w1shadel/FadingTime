@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TimeManager {
     private static final Map<UUID, Deque<EntityState>> HISTORY = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> LAST_RECORDED_TICK = new ConcurrentHashMap<>();
     private static PlayerTimeMode currentMode = PlayerTimeMode.NORMAL;
     private static int playerAccelFactor = 1;
     private static PlayerTimeMode clientMode = PlayerTimeMode.NORMAL;
@@ -73,15 +74,14 @@ public class TimeManager {
         forceNormalize();
         playModeSound(player, PlayerTimeMode.NORMAL);
     }
+
     public static void serverTick(ServerPlayer player) {
         player.getCapability(TimeDataCapability.INSTANCE).ifPresent(data -> {
-            // 1. ティアの更新と属性ベース値の同期
             int newTier = CurioUtil.getEquippedTankTier(player);
             if (data.tier != newTier) {
                 data.tier = newTier;
-                data.updateBaseAttributes(player); // ティアが変わったら属性の基本値を更新
+                data.updateBaseAttributes(player);
             }
-            // 2. Attributeから最新の最大コストを取得
             double maxCost = data.getMaxCost(player);
             if (CurioUtil.hasHalo(player)) {
                 data.currentCost = maxCost;
@@ -112,10 +112,12 @@ public class TimeManager {
 
     public static void onEntityRemoved(UUID uuid) {
         HISTORY.remove(uuid);
+        LAST_RECORDED_TICK.remove(uuid);
     }
 
     public static void clearAllHistory() {
         HISTORY.clear();
+        LAST_RECORDED_TICK.clear();
     }
 
     public static void requestMode(ServerPlayer player, PlayerTimeMode targetMode, int factor) {
@@ -153,7 +155,6 @@ public class TimeManager {
         var entityMap = ((ChunkMapAccessor) level.getChunkSource().chunkMap).getEntityMap();
         java.util.List<Entity> toTick = new java.util.ArrayList<>();
         ((ServerLevelAccessor) level).getEntityTickList().forEach(toTick::add);
-
         for (Entity entity : toTick) {
             if (entity.isRemoved()) continue;
             if (isImmune(entity, level)) {
@@ -212,15 +213,21 @@ public class TimeManager {
                 return data.currentCost > 0;
             }).orElse(false);
         }
-
         return false;
     }
+
     public static void recordState(Entity entity) {
         if (entity.level().isClientSide) return;
         if (isTimeStopped() || isRewinding()) return;
-        Deque<EntityState> states = HISTORY.computeIfAbsent(entity.getUUID(), k -> new ArrayDeque<>());
+        UUID uuid = entity.getUUID();
+        int currentTick = entity.tickCount;
+        Integer lastTick = LAST_RECORDED_TICK.get(uuid);
+        if (lastTick != null && lastTick == currentTick) {
+            return;
+        }
+        Deque<EntityState> states = HISTORY.computeIfAbsent(uuid, k -> new ArrayDeque<>());
         synchronized (states) {
-            states.addFirst(new EntityState(
+            EntityState currentState = new EntityState(
                     entity.position(),
                     entity.getDeltaMovement(),
                     entity.getYRot(),
@@ -230,11 +237,26 @@ public class TimeManager {
                     entity.getRemainingFireTicks(),
                     entity.getAirSupply(),
                     entity.fallDistance
-            ));
+            );
+            if (!states.isEmpty()) {
+                EntityState lastState = states.peekFirst();
+                if (isStateIdentical(currentState, lastState)) {
+                    return;
+                }
+            }
+            states.addFirst(currentState);
             while (states.size() > 1000) {
                 states.removeLast();
             }
         }
+        LAST_RECORDED_TICK.put(uuid, currentTick);
+    }
+
+    private static boolean isStateIdentical(EntityState s1, EntityState s2) {
+        return s1.pos().equals(s2.pos()) &&
+                s1.health() == s2.health() &&
+                s1.yRot() == s2.yRot() &&
+                s1.fireTicks() == s2.fireTicks();
     }
 
     public static EntityState popState(Entity entity) {

@@ -11,8 +11,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface AutoRegisterEntity {
     String name();
+
     float width() default 0.6f;
+
     float height() default 1.8f;
+
     MobCategory category() default MobCategory.MONSTER;
+
     String renderer() default "";
 }
